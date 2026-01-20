@@ -271,6 +271,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'עברית'**
   String get hebrew;
+
+  /// Filters dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// Verification score filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Score'**
+  String get verificationScoreFilter;
+
+  /// Placeholder text for future filters
+  ///
+  /// In en, this message translates to:
+  /// **'More filters coming soon...'**
+  String get moreFiltersComingSoon;
+
+  /// Reset button text
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// Apply button text
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
 }
 
 class _AppLocalizationsDelegate

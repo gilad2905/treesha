@@ -119,4 +119,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get hebrew => 'עברית';
+
+  @override
+  String get filters => 'מסננים';
+
+  @override
+  String get verificationScoreFilter => 'ציון אימות';
+
+  @override
+  String get moreFiltersComingSoon => 'מסננים נוספים בקרוב...';
+
+  @override
+  String get reset => 'איפוס';
+
+  @override
+  String get apply => 'החל';
 }

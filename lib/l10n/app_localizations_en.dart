@@ -120,4 +120,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hebrew => 'עברית';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get verificationScoreFilter => 'Verification Score';
+
+  @override
+  String get moreFiltersComingSoon => 'More filters coming soon...';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get apply => 'Apply';
 }

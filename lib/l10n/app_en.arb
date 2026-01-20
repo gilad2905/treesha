@@ -188,5 +188,30 @@
   "hebrew": "עברית",
   "@hebrew": {
     "description": "Hebrew language name in Hebrew"
+  },
+
+  "filters": "Filters",
+  "@filters": {
+    "description": "Filters dialog title"
+  },
+
+  "verificationScoreFilter": "Verification Score",
+  "@verificationScoreFilter": {
+    "description": "Verification score filter label"
+  },
+
+  "moreFiltersComingSoon": "More filters coming soon...",
+  "@moreFiltersComingSoon": {
+    "description": "Placeholder text for future filters"
+  },
+
+  "reset": "Reset",
+  "@reset": {
+    "description": "Reset button text"
+  },
+
+  "apply": "Apply",
+  "@apply": {
+    "description": "Apply button text"
   }
 }

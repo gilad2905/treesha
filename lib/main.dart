@@ -29,6 +29,7 @@ import 'package:treesha/services/firestore_diagnostic.dart';
 import 'package:treesha/models/tree_model.dart';
 
 import 'package:treesha/widgets/add_tree_dialog.dart';
+import 'package:treesha/widgets/filter_dialog.dart';
 import 'package:treesha/screens/tree_detail_screen.dart';
 
 
@@ -509,6 +510,12 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
+          // Filter button
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            tooltip: l10n.filters,
+            onPressed: () => _showFilterDialog(),
+          ),
           // Diagnostic button
           IconButton(
             icon: const Icon(Icons.bug_report),
@@ -549,103 +556,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
-            body: Column(
-
-
-
-              children: [
-
-
-
-                Padding(
-
-
-
-                  padding: const EdgeInsets.all(8.0),
-
-
-
-                  child: Column(
-
-
-
-                    children: [
-
-
-
-                      Text(l10n.minimumVerificationScore(_minVerificationScore.toInt())),
-
-
-
-                      Slider(
-
-
-
-                        value: _minVerificationScore,
-
-
-
-                        min: -10.0,
-
-
-
-                        max: 10.0,
-
-
-
-                        divisions: 20,
-
-
-
-                        label: _minVerificationScore.round().toString(),
-
-
-
-                        onChanged: (double value) {
-
-
-
-                          setState(() {
-
-
-
-                            _minVerificationScore = value;
-                            // Re-filter trees with new score
-                            _loadTrees();
-
-
-
-                          });
-
-
-
-                        },
-
-
-
-                      ),
-
-
-
-                    ],
-
-
-
-                  ),
-
-
-
-                ),
-
-
-
-                Expanded(
-
-
-
-                  child: _isLoadingTrees
-                      ? const Center(child: CircularProgressIndicator())
-                      : GestureDetector(
+            body: _isLoadingTrees
+                ? const Center(child: CircularProgressIndicator())
+                : GestureDetector(
 
 
 
@@ -813,15 +726,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
                                             ),
-                ),
-
-
-
-              ],
-
-
-
-            ),
 
 
 
@@ -849,6 +753,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
+  }
+
+  void _showFilterDialog() async {
+    final result = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        return FilterDialog(
+          initialMinVerificationScore: _minVerificationScore,
+        );
+      },
+    );
+
+    // If user pressed Apply (result is not null), update the filter
+    if (result != null) {
+      setState(() {
+        _minVerificationScore = result;
+      });
+      _loadTrees(); // Reload trees with new filter
+    }
   }
 
 
