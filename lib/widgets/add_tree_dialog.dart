@@ -5,7 +5,8 @@ import 'package:treesha/models/fruit_model.dart'; // Import fruit_model
 import 'package:treesha/services/fruit_service.dart'; // Import fruit_service
 
 class AddTreeDialog extends StatefulWidget {
-  final Future<bool> Function(String name, String fruitType, XFile? image) onAdd; // Changed signature
+  final Future<bool> Function(String name, String fruitType, XFile? image)
+  onAdd; // Changed signature
 
   const AddTreeDialog({super.key, required this.onAdd});
 
@@ -58,7 +59,9 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
       } else {
         _filteredFruits = _allFruits
             .where(
-                (fruit) => fruit.type.toLowerCase().contains(pattern.toLowerCase()))
+              (fruit) =>
+                  fruit.type.toLowerCase().contains(pattern.toLowerCase()),
+            )
             .toList();
       }
       _selectedFruitType = null; // Clear selected fruit type when user types
@@ -81,7 +84,9 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
       onWillPop: () async {
         // Prevent back button during loading
         if (_isLoading) {
-          print('[AddTreeDialog] Back button pressed during loading - preventing dismissal');
+          print(
+            '[AddTreeDialog] Back button pressed during loading - preventing dismissal',
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Please wait for the tree to be saved'),
@@ -93,166 +98,177 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
         return true;
       },
       child: AlertDialog(
-      title: Text(l10n.addTree),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: l10n.treeName),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.pleaseEnterTreeName;
-                  }
-                  return null;
-                },
-              ),
-              // Manual TypeAhead-like functionality
-              TextFormField(
-                controller: _fruitTypeController,
-                decoration: InputDecoration(
-                  labelText: l10n.fruitType,
-                  hintText: l10n.searchFruitType,
-                ),
-                onChanged: _onFruitTypeChanged,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.pleaseEnterFruitType;
-                  }
-                  // Check if the entered value is one of the valid fruit types
-                  if (_allFruits.any((fruit) => fruit.type == value)) {
-                    return null; // Valid fruit selected
-                  }
-                  return l10n.pleaseSelectValidFruit;
-                },
-              ),
-              // Display suggestions
-              if (_fruitTypeController.text.isNotEmpty)
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                      maxHeight: 200), // Limit height of suggestions
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: _filteredFruits.map((fruit) {
-                        return ListTile(
-                          title: Text(fruit.type),
-                          subtitle: Text(fruit.edibleSeason),
-                          onTap: () {
-                            setState(() {
-                              _fruitTypeController.text = fruit.type;
-                              _selectedFruitType =
-                                  fruit.type; // Confirm selection
-                              _filteredFruits =
-                                  []; // Clear suggestions after selection
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : _pickImage,
-                    icon: const Icon(Icons.image),
-                    label: Text(l10n.addImage),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _image?.name ?? l10n.noImageSelected,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _isLoading ? null : () {
-            print('[AddTreeDialog] Cancel button pressed');
-            Navigator.of(context).pop();
-          },
-          child: Text(
-            l10n.cancel,
-            style: TextStyle(color: _isLoading ? Colors.grey : null),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: _isLoading
-              ? null
-              : () async {
-                  if (_formKey.currentState!.validate()) {
-                    print('[AddTreeDialog] Form validated, starting save...');
-                    print('[AddTreeDialog] Tree name: ${_nameController.text}');
-                    print('[AddTreeDialog] Fruit type: ${_selectedFruitType ?? _fruitTypeController.text}');
-                    print('[AddTreeDialog] Image: ${_image?.name ?? "none"}');
-
-                    setState(() => _isLoading = true);
-                    try {
-                      final result = await widget.onAdd(
-                        _nameController.text,
-                        _selectedFruitType ?? _fruitTypeController.text,
-                        _image,
-                      );
-
-                      print('[AddTreeDialog] onAdd completed with result: $result');
-
-                      if (result && mounted) {
-                        print('[AddTreeDialog] Success, closing dialog');
-                        Navigator.of(context).pop();
-                      } else if (!result && mounted) {
-                        print('[AddTreeDialog] Failed to save tree');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Failed to save tree. Please try again.'),
-                            duration: Duration(seconds: 3),
-                          ),
-                        );
-                      }
-                    } catch (e, stackTrace) {
-                      print('[AddTreeDialog] ERROR: Exception in onAdd: $e');
-                      print('[AddTreeDialog] Stack trace: $stackTrace');
-
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: ${e.toString()}'),
-                            duration: const Duration(seconds: 5),
-                          ),
-                        );
-                      }
-                    } finally {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        print('[AddTreeDialog] Loading state reset');
-                      }
+        title: Text(l10n.addTree),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(labelText: l10n.treeName),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.pleaseEnterTreeName;
                     }
-                  } else {
-                    print('[AddTreeDialog] Form validation failed');
-                  }
-                },
-          child: _isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    return null;
+                  },
+                ),
+                // Manual TypeAhead-like functionality
+                TextFormField(
+                  controller: _fruitTypeController,
+                  decoration: InputDecoration(
+                    labelText: l10n.fruitType,
+                    hintText: l10n.searchFruitType,
                   ),
-                )
-              : Text(l10n.add),
+                  onChanged: _onFruitTypeChanged,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return l10n.pleaseEnterFruitType;
+                    }
+                    // Check if the entered value is one of the valid fruit types
+                    if (_allFruits.any((fruit) => fruit.type == value)) {
+                      return null; // Valid fruit selected
+                    }
+                    return l10n.pleaseSelectValidFruit;
+                  },
+                ),
+                // Display suggestions
+                if (_fruitTypeController.text.isNotEmpty)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxHeight: 200,
+                    ), // Limit height of suggestions
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: _filteredFruits.map((fruit) {
+                          return ListTile(
+                            title: Text(fruit.type),
+                            subtitle: Text(fruit.edibleSeason),
+                            onTap: () {
+                              setState(() {
+                                _fruitTypeController.text = fruit.type;
+                                _selectedFruitType =
+                                    fruit.type; // Confirm selection
+                                _filteredFruits =
+                                    []; // Clear suggestions after selection
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: _isLoading ? null : _pickImage,
+                      icon: const Icon(Icons.image),
+                      label: Text(l10n.addImage),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _image?.name ?? l10n.noImageSelected,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
-      ],
-    ),
+        actions: [
+          TextButton(
+            onPressed: _isLoading
+                ? null
+                : () {
+                    print('[AddTreeDialog] Cancel button pressed');
+                    Navigator.of(context).pop();
+                  },
+            child: Text(
+              l10n.cancel,
+              style: TextStyle(color: _isLoading ? Colors.grey : null),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _isLoading
+                ? null
+                : () async {
+                    if (_formKey.currentState!.validate()) {
+                      print('[AddTreeDialog] Form validated, starting save...');
+                      print(
+                        '[AddTreeDialog] Tree name: ${_nameController.text}',
+                      );
+                      print(
+                        '[AddTreeDialog] Fruit type: ${_selectedFruitType ?? _fruitTypeController.text}',
+                      );
+                      print('[AddTreeDialog] Image: ${_image?.name ?? "none"}');
+
+                      setState(() => _isLoading = true);
+                      try {
+                        final result = await widget.onAdd(
+                          _nameController.text,
+                          _selectedFruitType ?? _fruitTypeController.text,
+                          _image,
+                        );
+
+                        print(
+                          '[AddTreeDialog] onAdd completed with result: $result',
+                        );
+
+                        if (result && mounted) {
+                          print('[AddTreeDialog] Success, closing dialog');
+                          Navigator.of(context).pop();
+                        } else if (!result && mounted) {
+                          print('[AddTreeDialog] Failed to save tree');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Failed to save tree. Please try again.',
+                              ),
+                              duration: Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      } catch (e, stackTrace) {
+                        print('[AddTreeDialog] ERROR: Exception in onAdd: $e');
+                        print('[AddTreeDialog] Stack trace: $stackTrace');
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: ${e.toString()}'),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isLoading = false);
+                          print('[AddTreeDialog] Loading state reset');
+                        }
+                      }
+                    } else {
+                      print('[AddTreeDialog] Form validation failed');
+                    }
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(l10n.add),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -51,12 +51,18 @@ class FirestoreDiagnostic {
       final settings = firestore.settings;
 
       print('[Diagnostic] Current settings:');
-      print('[Diagnostic]   - persistenceEnabled: ${settings.persistenceEnabled}');
+      print(
+        '[Diagnostic]   - persistenceEnabled: ${settings.persistenceEnabled}',
+      );
       print('[Diagnostic]   - sslEnabled: ${settings.sslEnabled}');
       print('[Diagnostic]   - cacheSizeBytes: ${settings.cacheSizeBytes}');
       print('[Diagnostic]   - host: ${settings.host}');
-      print('[Diagnostic]   - webExperimentalForceLongPolling: ${settings.webExperimentalForceLongPolling}');
-      print('[Diagnostic]   - webExperimentalAutoDetectLongPolling: ${settings.webExperimentalAutoDetectLongPolling}');
+      print(
+        '[Diagnostic]   - webExperimentalForceLongPolling: ${settings.webExperimentalForceLongPolling}',
+      );
+      print(
+        '[Diagnostic]   - webExperimentalAutoDetectLongPolling: ${settings.webExperimentalAutoDetectLongPolling}',
+      );
 
       // Try to apply new settings
       print('[Diagnostic] Attempting to apply new settings...');
@@ -69,7 +75,9 @@ class FirestoreDiagnostic {
       await Future.delayed(const Duration(milliseconds: 100));
       final newSettings = firestore.settings;
       print('[Diagnostic] After applying:');
-      print('[Diagnostic]   - webExperimentalForceLongPolling: ${newSettings.webExperimentalForceLongPolling}');
+      print(
+        '[Diagnostic]   - webExperimentalForceLongPolling: ${newSettings.webExperimentalForceLongPolling}',
+      );
 
       if (newSettings.webExperimentalForceLongPolling == true) {
         print('[Diagnostic] ✅ Settings applied successfully');
@@ -118,7 +126,8 @@ class FirestoreDiagnostic {
     try {
       print('[Diagnostic] Writing test document to "trees" collection...');
       final start = DateTime.now();
-      final testDocId = 'diagnostic_test_${DateTime.now().millisecondsSinceEpoch}';
+      final testDocId =
+          'diagnostic_test_${DateTime.now().millisecondsSinceEpoch}';
 
       await FirebaseFirestore.instance
           .collection('trees')
@@ -164,7 +173,8 @@ class FirestoreDiagnostic {
     try {
       print('[Diagnostic] Writing with 30s timeout...');
       final start = DateTime.now();
-      final testDocId = 'diagnostic_timeout_${DateTime.now().millisecondsSinceEpoch}';
+      final testDocId =
+          'diagnostic_timeout_${DateTime.now().millisecondsSinceEpoch}';
 
       await FirebaseFirestore.instance
           .collection('trees')
@@ -185,7 +195,10 @@ class FirestoreDiagnostic {
       print('[Diagnostic] ✅ Write succeeded in ${duration.inMilliseconds}ms');
 
       // Clean up
-      await FirebaseFirestore.instance.collection('trees').doc(testDocId).delete();
+      await FirebaseFirestore.instance
+          .collection('trees')
+          .doc(testDocId)
+          .delete();
     } catch (e) {
       print('[Diagnostic] ❌ Write with extended timeout failed: $e');
     }
@@ -204,9 +217,12 @@ class FirestoreDiagnostic {
       print('[Diagnostic] Creating batch write...');
       final start = DateTime.now();
       final batch = FirebaseFirestore.instance.batch();
-      final testDocId = 'diagnostic_batch_${DateTime.now().millisecondsSinceEpoch}';
+      final testDocId =
+          'diagnostic_batch_${DateTime.now().millisecondsSinceEpoch}';
 
-      final docRef = FirebaseFirestore.instance.collection('trees').doc(testDocId);
+      final docRef = FirebaseFirestore.instance
+          .collection('trees')
+          .doc(testDocId);
       batch.set(docRef, {
         'test': true,
         'userId': user.uid,
@@ -222,7 +238,9 @@ class FirestoreDiagnostic {
       );
 
       final duration = DateTime.now().difference(start);
-      print('[Diagnostic] ✅ Batch write succeeded in ${duration.inMilliseconds}ms');
+      print(
+        '[Diagnostic] ✅ Batch write succeeded in ${duration.inMilliseconds}ms',
+      );
 
       // Clean up
       await docRef.delete();

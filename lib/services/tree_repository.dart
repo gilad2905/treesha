@@ -9,7 +9,7 @@ class TreeRepository {
   final FirebaseFirestore _firestore;
 
   TreeRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Add a new tree to Firestore
   ///
@@ -28,7 +28,9 @@ class TreeRepository {
     print('[TreeRepository]   User: $userId');
     print('[TreeRepository]   Name: $name');
     print('[TreeRepository]   Type: $fruitType');
-    print('[TreeRepository]   Position: ${position.latitude}, ${position.longitude}');
+    print(
+      '[TreeRepository]   Position: ${position.latitude}, ${position.longitude}',
+    );
 
     // Validate inputs
     if (userId.isEmpty) throw ArgumentError('userId cannot be empty');
@@ -60,12 +62,16 @@ class TreeRepository {
       print('[TreeRepository] Generated document ID: $docId');
 
       print('[TreeRepository] Attempting to write document...');
-      await docRef.set(data).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('Write operation timed out after 10 seconds');
-        },
-      );
+      await docRef
+          .set(data)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException(
+                'Write operation timed out after 10 seconds',
+              );
+            },
+          );
 
       print('[TreeRepository] ✅ SUCCESS! Tree added with ID: $docId');
       print('[TreeRepository] =====================================');
@@ -117,10 +123,7 @@ class TreeRepository {
     try {
       final testDoc = await _firestore
           .collection('trees')
-          .add({
-            'test': true,
-            'timestamp': Timestamp.now(),
-          })
+          .add({'test': true, 'timestamp': Timestamp.now()})
           .timeout(const Duration(seconds: 10));
 
       print('[TreeRepository] ✅ Test write successful! ID: ${testDoc.id}');

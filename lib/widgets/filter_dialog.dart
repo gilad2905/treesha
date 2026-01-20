@@ -4,10 +4,7 @@ import 'package:treesha/l10n/app_localizations.dart';
 class FilterDialog extends StatefulWidget {
   final double initialMinVerificationScore;
 
-  const FilterDialog({
-    super.key,
-    required this.initialMinVerificationScore,
-  });
+  const FilterDialog({super.key, required this.initialMinVerificationScore});
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
@@ -36,9 +33,9 @@ class _FilterDialogState extends State<FilterDialog> {
             // Verification Score Filter
             Text(
               l10n.verificationScoreFilter,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -62,9 +59,9 @@ class _FilterDialogState extends State<FilterDialog> {
             Text(
               l10n.moreFiltersComingSoon,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey,
-                    fontStyle: FontStyle.italic,
-                  ),
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
         ),

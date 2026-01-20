@@ -1,6 +1,4 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 
 class Tree {
   final String id;
@@ -33,7 +31,9 @@ class Tree {
     Map data = doc.data() as Map<String, dynamic>;
     return Tree(
       id: doc.id,
-      userId: data['userId'] ?? '', // Default to empty string for backward compatibility
+      userId:
+          data['userId'] ??
+          '', // Default to empty string for backward compatibility
       name: data['name'] ?? '',
       fruitType: data['fruitType'] ?? '',
       position: data['position'] ?? const GeoPoint(0, 0),

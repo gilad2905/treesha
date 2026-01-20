@@ -53,31 +53,39 @@ class TreeRepositoryNoConfirm {
           'geoPointValue': {
             'latitude': position.latitude,
             'longitude': position.longitude,
-          }
+          },
         },
         'imageUrl': {'stringValue': imageUrl ?? ''},
-        'createdAt': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
-        'upvotes': {'arrayValue': {'values': []}},
-        'downvotes': {'arrayValue': {'values': []}},
-      }
+        'createdAt': {
+          'timestampValue': DateTime.now().toUtc().toIso8601String(),
+        },
+        'upvotes': {
+          'arrayValue': {'values': []},
+        },
+        'downvotes': {
+          'arrayValue': {'values': []},
+        },
+      },
     };
 
     print('[TreeRepo-REST] Making HTTP request...');
 
     try {
-      final response = await http.patch(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('HTTP request timed out');
-        },
-      );
+      final response = await http
+          .patch(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('HTTP request timed out');
+            },
+          );
 
       print('[TreeRepo-REST] Response status: ${response.statusCode}');
 
@@ -121,10 +129,9 @@ class TreeRepositoryNoConfirm {
         print('[TreeRepo-REST] Fetching without authentication (public read)');
       }
 
-      final response = await http.get(
-        url,
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -143,21 +150,30 @@ class TreeRepositoryNoConfirm {
             'userId': fields['userId']?['stringValue'] ?? '',
             'name': fields['name']?['stringValue'] ?? '',
             'fruitType': fields['fruitType']?['stringValue'] ?? '',
-            'latitude': fields['position']?['geoPointValue']?['latitude'] ?? 0.0,
-            'longitude': fields['position']?['geoPointValue']?['longitude'] ?? 0.0,
+            'latitude':
+                fields['position']?['geoPointValue']?['latitude'] ?? 0.0,
+            'longitude':
+                fields['position']?['geoPointValue']?['longitude'] ?? 0.0,
             'imageUrl': fields['imageUrl']?['stringValue'] ?? '',
             'createdAt': fields['createdAt']?['timestampValue'] ?? '',
             'lastVerifiedAt': fields['lastVerifiedAt']?['timestampValue'],
-            'upvotes': (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
+            'upvotes':
+                (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
                     ?.map((v) => v['stringValue'] as String)
-                    .toList() ?? [],
-            'downvotes': (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
+                    .toList() ??
+                [],
+            'downvotes':
+                (fields['downvotes']?['arrayValue']?['values']
+                        as List<dynamic>?)
                     ?.map((v) => v['stringValue'] as String)
-                    .toList() ?? [],
+                    .toList() ??
+                [],
           };
         }).toList();
       } else {
-        print('[TreeRepo-REST] ❌ HTTP ${response.statusCode}: ${response.body}');
+        print(
+          '[TreeRepo-REST] ❌ HTTP ${response.statusCode}: ${response.body}',
+        );
         return [];
       }
     } catch (e, stack) {
@@ -180,10 +196,9 @@ class TreeRepositoryNoConfirm {
         '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$docId',
       );
 
-      final response = await http.get(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(url, headers: {'Authorization': 'Bearer $token'})
+          .timeout(const Duration(seconds: 5));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -212,10 +227,9 @@ class TreeRepositoryNoConfirm {
         '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
       );
 
-      final getResponse = await http.get(
-        getUrl,
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 5));
+      final getResponse = await http
+          .get(getUrl, headers: {'Authorization': 'Bearer $token'})
+          .timeout(const Duration(seconds: 5));
 
       if (getResponse.statusCode != 200) {
         throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
@@ -225,12 +239,16 @@ class TreeRepositoryNoConfirm {
       final fields = treeData['fields'] as Map<String, dynamic>;
 
       // Parse current votes
-      List<String> upvotes = (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
+      List<String> upvotes =
+          (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
               ?.map((v) => v['stringValue'] as String)
-              .toList() ?? [];
-      List<String> downvotes = (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              .toList() ??
+          [];
+      List<String> downvotes =
+          (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
               ?.map((v) => v['stringValue'] as String)
-              .toList() ?? [];
+              .toList() ??
+          [];
 
       // Toggle upvote
       bool isAddingUpvote = !upvotes.contains(userId);
@@ -243,7 +261,8 @@ class TreeRepositoryNoConfirm {
       }
 
       // Build update mask
-      String updateMask = 'updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes';
+      String updateMask =
+          'updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes';
       if (isAddingUpvote) {
         updateMask += '&updateMask.fieldPaths=lastVerifiedAt';
       }
@@ -256,40 +275,42 @@ class TreeRepositoryNoConfirm {
       final updateFields = <String, dynamic>{
         'upvotes': {
           'arrayValue': {
-            'values': upvotes.map((id) => {'stringValue': id}).toList()
-          }
+            'values': upvotes.map((id) => {'stringValue': id}).toList(),
+          },
         },
         'downvotes': {
           'arrayValue': {
-            'values': downvotes.map((id) => {'stringValue': id}).toList()
-          }
+            'values': downvotes.map((id) => {'stringValue': id}).toList(),
+          },
         },
       };
 
       // Add lastVerifiedAt when adding an upvote
       if (isAddingUpvote) {
         updateFields['lastVerifiedAt'] = <String, dynamic>{
-          'timestampValue': DateTime.now().toUtc().toIso8601String()
+          'timestampValue': DateTime.now().toUtc().toIso8601String(),
         };
       }
 
-      final updateBody = {
-        'fields': updateFields
-      };
+      final updateBody = {'fields': updateFields};
 
-      final updateResponse = await http.patch(
-        updateUrl,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(updateBody),
-      ).timeout(const Duration(seconds: 10));
+      final updateResponse = await http
+          .patch(
+            updateUrl,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(updateBody),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (updateResponse.statusCode == 200) {
         print('[TreeRepo-REST] ✅ Upvote successful');
       } else {
-        throw Exception('Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}');
+        throw Exception(
+          'Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}',
+        );
       }
     } catch (e, stack) {
       print('[TreeRepo-REST] ❌ Upvote failed: $e');
@@ -318,10 +339,9 @@ class TreeRepositoryNoConfirm {
         '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
       );
 
-      final getResponse = await http.get(
-        getUrl,
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 5));
+      final getResponse = await http
+          .get(getUrl, headers: {'Authorization': 'Bearer $token'})
+          .timeout(const Duration(seconds: 5));
 
       if (getResponse.statusCode != 200) {
         throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
@@ -331,12 +351,16 @@ class TreeRepositoryNoConfirm {
       final fields = treeData['fields'] as Map<String, dynamic>;
 
       // Parse current votes
-      List<String> upvotes = (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
+      List<String> upvotes =
+          (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
               ?.map((v) => v['stringValue'] as String)
-              .toList() ?? [];
-      List<String> downvotes = (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              .toList() ??
+          [];
+      List<String> downvotes =
+          (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
               ?.map((v) => v['stringValue'] as String)
-              .toList() ?? [];
+              .toList() ??
+          [];
 
       // Toggle downvote
       if (downvotes.contains(userId)) {
@@ -355,30 +379,34 @@ class TreeRepositoryNoConfirm {
         'fields': {
           'upvotes': {
             'arrayValue': {
-              'values': upvotes.map((id) => {'stringValue': id}).toList()
-            }
+              'values': upvotes.map((id) => {'stringValue': id}).toList(),
+            },
           },
           'downvotes': {
             'arrayValue': {
-              'values': downvotes.map((id) => {'stringValue': id}).toList()
-            }
+              'values': downvotes.map((id) => {'stringValue': id}).toList(),
+            },
           },
-        }
+        },
       };
 
-      final updateResponse = await http.patch(
-        updateUrl,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(updateBody),
-      ).timeout(const Duration(seconds: 10));
+      final updateResponse = await http
+          .patch(
+            updateUrl,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(updateBody),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (updateResponse.statusCode == 200) {
         print('[TreeRepo-REST] ✅ Downvote successful');
       } else {
-        throw Exception('Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}');
+        throw Exception(
+          'Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}',
+        );
       }
     } catch (e, stack) {
       print('[TreeRepo-REST] ❌ Downvote failed: $e');

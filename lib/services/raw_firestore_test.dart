@@ -30,27 +30,31 @@ class RawFirestoreTest {
       final body = {
         'fields': {
           'test': {'booleanValue': true},
-          'timestamp': {'timestampValue': DateTime.now().toUtc().toIso8601String()},
+          'timestamp': {
+            'timestampValue': DateTime.now().toUtc().toIso8601String(),
+          },
           'userId': {'stringValue': user.uid},
-        }
+        },
       };
 
       print('[RawTest] Making HTTP POST request...');
       print('[RawTest] URL: $url');
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(body),
-      ).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('HTTP request timed out');
-        },
-      );
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception('HTTP request timed out');
+            },
+          );
 
       print('[RawTest] Response status: ${response.statusCode}');
       print('[RawTest] Response body: ${response.body.substring(0, 200)}...');
@@ -62,10 +66,7 @@ class RawFirestoreTest {
 
         // Try to delete the test document
         print('[RawTest] Cleaning up test document...');
-        await http.delete(
-          url,
-          headers: {'Authorization': 'Bearer $token'},
-        );
+        await http.delete(url, headers: {'Authorization': 'Bearer $token'});
         print('[RawTest] Test document deleted');
       } else {
         print('[RawTest] ❌ HTTP error: ${response.statusCode}');

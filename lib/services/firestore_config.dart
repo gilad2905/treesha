@@ -23,7 +23,9 @@ class FirestoreConfig {
       print('[FirestoreConfig] Firebase app: ${app.name}');
       print('[FirestoreConfig] Project: ${app.options.projectId}');
     } catch (e) {
-      throw Exception('Firebase not initialized! Call Firebase.initializeApp() first');
+      throw Exception(
+        'Firebase not initialized! Call Firebase.initializeApp() first',
+      );
     }
 
     // Note: The Flutter SDK doesn't support custom database names easily
@@ -46,8 +48,12 @@ class FirestoreConfig {
       _appliedSettings = applied;
 
       print('[FirestoreConfig] Settings applied:');
-      print('[FirestoreConfig]   - persistenceEnabled: ${applied.persistenceEnabled}');
-      print('[FirestoreConfig]   - webExperimentalForceLongPolling: ${applied.webExperimentalForceLongPolling}');
+      print(
+        '[FirestoreConfig]   - persistenceEnabled: ${applied.persistenceEnabled}',
+      );
+      print(
+        '[FirestoreConfig]   - webExperimentalForceLongPolling: ${applied.webExperimentalForceLongPolling}',
+      );
 
       _isConfigured = true;
       print('[FirestoreConfig] ✅ Configuration complete');
@@ -82,7 +88,9 @@ class FirestoreConfig {
             onTimeout: () => throw Exception('Connection test timed out'),
           );
 
-      print('[FirestoreConfig] ✅ Connection test passed (${result.docs.length} docs)');
+      print(
+        '[FirestoreConfig] ✅ Connection test passed (${result.docs.length} docs)',
+      );
       return true;
     } catch (e) {
       print('[FirestoreConfig] ❌ Connection test failed: $e');

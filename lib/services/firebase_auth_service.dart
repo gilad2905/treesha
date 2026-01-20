@@ -6,7 +6,9 @@ class FirebaseAuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
-    clientId: kIsWeb ? '859938357630-9adn9ql6cn1toefs0ilqdm7ell3d3l1s.apps.googleusercontent.com' : null,
+    clientId: kIsWeb
+        ? '859938357630-9adn9ql6cn1toefs0ilqdm7ell3d3l1s.apps.googleusercontent.com'
+        : null,
   );
 
   Stream<User?> get user => _firebaseAuth.authStateChanges();
@@ -24,8 +26,8 @@ class FirebaseAuthService {
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-      final UserCredential userCredential =
-          await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
       // print(e); // Removed print statement

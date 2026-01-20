@@ -1,4 +1,3 @@
-
 class Fruit {
   final String type;
   final String edibleSeason;
@@ -20,7 +19,9 @@ class Fruit {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Fruit && other.type == type && other.edibleSeason == edibleSeason;
+    return other is Fruit &&
+        other.type == type &&
+        other.edibleSeason == edibleSeason;
   }
 
   @override

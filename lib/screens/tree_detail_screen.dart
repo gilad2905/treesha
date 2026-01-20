@@ -47,15 +47,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     final lng = widget.tree.position.longitude;
 
     // Google Maps URL for directions
-    final url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+    );
 
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening maps: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening maps: $e')));
     }
   }
 
@@ -90,21 +92,33 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                   ? Image.network(
                       widget.tree.imageUrl,
                       fit: BoxFit.contain,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child;
-                        }
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                        return const Icon(Icons.broken_image, size: 100);
-                      },
+                      loadingBuilder:
+                          (
+                            BuildContext context,
+                            Widget child,
+                            ImageChunkEvent? loadingProgress,
+                          ) {
+                            if (loadingProgress == null) {
+                              return child;
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                      errorBuilder:
+                          (
+                            BuildContext context,
+                            Object error,
+                            StackTrace? stackTrace,
+                          ) {
+                            return const Icon(Icons.broken_image, size: 100);
+                          },
                     )
                   : const SizedBox.shrink(),
               const SizedBox(height: 16),
@@ -118,7 +132,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 child: Column(
                   children: [
                     Text(
-                      l10n.verificationScore(_upvotes.length - _downvotes.length),
+                      l10n.verificationScore(
+                        _upvotes.length - _downvotes.length,
+                      ),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -141,7 +157,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                 if (_user == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('You need to be logged in to verify trees'),
+                                      content: Text(
+                                        'You need to be logged in to verify trees',
+                                      ),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -160,16 +178,25 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
                                 // Then update the database
                                 try {
-                                  await _firebaseService.upvoteTree(widget.tree.id, _user!.uid);
+                                  await _firebaseService.upvoteTree(
+                                    widget.tree.id,
+                                    _user!.uid,
+                                  );
                                 } catch (e) {
                                   // Revert on error
                                   setState(() {
                                     _upvotes = List.from(widget.tree.upvotes);
-                                    _downvotes = List.from(widget.tree.downvotes);
+                                    _downvotes = List.from(
+                                      widget.tree.downvotes,
+                                    );
                                   });
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(l10n.errorUpvoting(e.toString()))),
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.errorUpvoting(e.toString()),
+                                      ),
+                                    ),
                                   );
                                 }
                               },
@@ -198,7 +225,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                 if (_user == null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('You need to be logged in to unverify trees'),
+                                      content: Text(
+                                        'You need to be logged in to unverify trees',
+                                      ),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -217,16 +246,25 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
                                 // Then update the database
                                 try {
-                                  await _firebaseService.downvoteTree(widget.tree.id, _user!.uid);
+                                  await _firebaseService.downvoteTree(
+                                    widget.tree.id,
+                                    _user!.uid,
+                                  );
                                 } catch (e) {
                                   // Revert on error
                                   setState(() {
                                     _upvotes = List.from(widget.tree.upvotes);
-                                    _downvotes = List.from(widget.tree.downvotes);
+                                    _downvotes = List.from(
+                                      widget.tree.downvotes,
+                                    );
                                   });
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(l10n.errorDownvoting(e.toString()))),
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.errorDownvoting(e.toString()),
+                                      ),
+                                    ),
                                   );
                                 }
                               },
@@ -248,17 +286,24 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.location(widget.tree.position.latitude, widget.tree.position.longitude),
+                l10n.location(
+                  widget.tree.position.latitude,
+                  widget.tree.position.longitude,
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                l10n.addedOn(widget.tree.createdAt.toDate().toLocal().toString()),
+                l10n.addedOn(
+                  widget.tree.createdAt.toDate().toLocal().toString().split(
+                    ' ',
+                  )[0],
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               if (widget.tree.lastVerifiedAt != null) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'Last verified: ${widget.tree.lastVerifiedAt!.toDate().toLocal().toString().split('.')[0]}',
+                  'Last verified: ${widget.tree.lastVerifiedAt!.toDate().toLocal().toString().split(' ')[0]}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Colors.green[700],
                     fontWeight: FontWeight.w500,

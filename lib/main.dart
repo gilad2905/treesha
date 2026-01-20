@@ -21,8 +21,6 @@ import 'package:treesha/l10n/app_localizations.dart';
 
 import 'package:treesha/providers/locale_provider.dart';
 
-
-
 import 'package:treesha/services/firebase_service.dart';
 import 'package:treesha/services/firestore_config.dart';
 import 'package:treesha/services/tree_repository.dart';
@@ -36,15 +34,11 @@ import 'package:treesha/widgets/add_tree_dialog.dart';
 import 'package:treesha/widgets/filter_dialog.dart';
 import 'package:treesha/screens/tree_detail_screen.dart';
 
-
-
 // You must setup firebase CLI and run `flutterfire configure`
 
 // For more info: https://firebase.google.com/docs/flutter/setup
 
 import 'firebase_options.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,21 +91,14 @@ void main() async {
   );
 }
 
-
-
 class MyApp extends StatelessWidget {
-
   const MyApp({super.key});
 
-
-
   @override
-
   Widget build(BuildContext context) {
     return Consumer<LocaleProvider>(
       builder: (context, localeProvider, child) {
         return MaterialApp(
-
           title: 'Treesha',
 
           // Localization configuration
@@ -128,11 +115,9 @@ class MyApp extends StatelessWidget {
           ],
 
           theme: ThemeData(
-
             primarySwatch: Colors.green,
 
             primaryColor: const Color(0xFF2E7D32),
-
           ),
           home: const MyHomePage(),
         );
@@ -141,26 +126,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-
 class MyHomePage extends StatefulWidget {
-
   const MyHomePage({super.key});
 
-
-
   @override
-
   State<MyHomePage> createState() => _MyHomePageState();
-
 }
 
-
-
 class _MyHomePageState extends State<MyHomePage> {
-
-
-
   // CRITICAL: Use late initialization to ensure Firebase settings are applied first in main()
   late final FirebaseService _firebaseService;
   late final FirebaseAuthService _authService;
@@ -168,48 +141,20 @@ class _MyHomePageState extends State<MyHomePage> {
   late final TreeRepositoryNoConfirm _treeRepositoryRest; // REST API version
   User? _user;
 
-
-
   GoogleMapController? _mapController;
 
+  Set<Marker> _markers = {}; // Changed type from AdvancedMarkerElement
+  Set<Circle> _circles = {}; // Circles for user location
+  BitmapDescriptor? _userMarkerIcon; // Custom user marker icon from asset
 
+  Position? _currentPosition;
 
-    Set<Marker> _markers = {}; // Changed type from AdvancedMarkerElement
-    Set<Circle> _circles = {}; // Circles for user location
-    BitmapDescriptor? _userMarkerIcon; // Custom user marker icon from asset
+  double _minVerificationScore = 0.0;
 
-
-
-  
-
-
-
-        Position? _currentPosition;
-
-
-
-  
-
-
-
-        double _minVerificationScore = 0.0;
-
-
-
-  
-
-
-
-        bool _isDialogShowing = false;
-        bool _isSavingTree = false; // Track if tree save is in progress
-        List<Tree> _trees = []; // Store trees loaded from REST API
-        bool _isLoadingTrees = false; // Track if trees are being loaded
-
-
-
-
-
-
+  bool _isDialogShowing = false;
+  bool _isSavingTree = false; // Track if tree save is in progress
+  List<Tree> _trees = []; // Store trees loaded from REST API
+  bool _isLoadingTrees = false; // Track if trees are being loaded
 
   /// Load blue marker icon from Google Maps CDN
   Future<void> _loadUserMarkerIcon() async {
@@ -245,9 +190,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-
-
-
   void initState() {
     super.initState();
 
@@ -256,7 +198,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _authService = FirebaseAuthService();
     _treeRepository = TreeRepository();
     _treeRepositoryRest = TreeRepositoryNoConfirm(); // REST API fallback
-
 
     _loadUserMarkerIcon(); // Load user marker icon from asset
     _determinePosition();
@@ -283,7 +224,8 @@ class _MyHomePageState extends State<MyHomePage> {
       // Convert Map data to Tree objects
       final trees = treesData.map((data) {
         // Parse the timestamp string and convert to Timestamp
-        final createdAtStr = data['createdAt'] as String? ?? DateTime.now().toIso8601String();
+        final createdAtStr =
+            data['createdAt'] as String? ?? DateTime.now().toIso8601String();
         final createdAtDateTime = DateTime.parse(createdAtStr);
 
         // Parse lastVerifiedAt if it exists
@@ -365,12 +307,13 @@ class _MyHomePageState extends State<MyHomePage> {
         newMarkers.add(
           Marker(
             markerId: const MarkerId('user_location'),
-            position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            position: LatLng(
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            ),
             icon: _userMarkerIcon!,
             anchor: const Offset(0.5, 0.5), // Center the icon on the position
-            infoWindow: const InfoWindow(
-              title: '📍 Your Location',
-            ),
+            infoWindow: const InfoWindow(title: '📍 Your Location'),
           ),
         );
       }
@@ -378,12 +321,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _markers = newMarkers;
   }
-
-
-
-
-
-
 
   Future<void> _determinePosition() async {
     try {
@@ -394,8 +331,6 @@ class _MyHomePageState extends State<MyHomePage> {
         _currentPosition = position;
         _updateMarkers(); // Update markers to include user location
       });
-
-
 
       // If map controller is already available, animate camera to current position
       if (_mapController != null) {
@@ -411,24 +346,13 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       debugPrint('[MyHomePage] Error determining position: $e');
     }
-
-
-
   }
-
-
-
-
-
-
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
 
     // If _currentPosition was already determined before map created, animate camera again.
     // This handles cases where _determinePosition finishes before _onMapCreated.
-
-
 
     final currentPosition = _currentPosition; // Local non-nullable variable
     // ignore: unnecessary_null_comparison
@@ -442,32 +366,16 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }
-
-
-
   }
 
-
-
-
-
-
-
   @override
-
-
-
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
 
-
     final currentPosition = _currentPosition; // Local non-nullable variable
 
     return Scaffold(
-
-
-
       appBar: AppBar(
         title: Text(l10n.appTitle),
         backgroundColor: const Color(0xFF2E7D32),
@@ -537,7 +445,10 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () async {
                 await _authService.signInWithGoogle();
               },
-              child: Text(l10n.signIn, style: const TextStyle(color: Colors.white)),
+              child: Text(
+                l10n.signIn,
+                style: const TextStyle(color: Colors.white),
+              ),
             )
           else
             Row(
@@ -547,219 +458,101 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () async {
                     await _authService.signOut();
                   },
-                  child: Text(l10n.signOut, style: const TextStyle(color: Colors.white)),
-                )
+                  child: Text(
+                    l10n.signOut,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
               ],
-            )
+            ),
         ],
       ),
 
-
-
-            body: _isLoadingTrees
-                ? const Center(child: CircularProgressIndicator())
-                : GestureDetector(
-
-
-
-                                              onDoubleTapDown: (details) async {
-
-
-
-                                                if (_mapController != null) {
-
-
-
-                                                  final latLng = await _mapController!.getLatLng(
-
-
-
-                                                        ScreenCoordinate(
-
-
-
-                                                          x: details.globalPosition.dx.toInt(),
-
-
-
-                                                          y: details.globalPosition.dy.toInt(),
-
-
-
-                                                        ),
-
-
-
-                                                      );
-
-
-
-                                                  if (latLng != null) {
-
-
-
-                                                    _onMapTapped(latLng);
-
-
-
-                                                  }
-
-
-
-                                                }
-
-
-
-                                              },
-
-
-
-                                              onLongPressStart: (details) async {
-
-
-
-                                                if (_mapController != null) {
-
-
-
-                                                  final latLng = await _mapController!.getLatLng(
-
-
-
-                                                        ScreenCoordinate(
-
-
-
-                                                          x: details.globalPosition.dx.toInt(),
-
-
-
-                                                          y: details.globalPosition.dy.toInt(),
-
-
-
-                                                        ),
-
-
-
-                                                      );
-
-
-
-                                                  if (latLng != null) {
-
-
-
-                                                    _onMapTapped(latLng);
-
-
-
-                                                  }
-
-
-
-                                                }
-
-
-
-                                              },
-
-
-
-                                              child: GoogleMap(
-
-
-
-                                                onMapCreated: _onMapCreated,
-
-
-
-                                                initialCameraPosition: CameraPosition(
-
-
-
-                                                  // ignore: unnecessary_null_comparison
-                                                  target: currentPosition != null
-
-
-
-                                                      ? LatLng(currentPosition.latitude, currentPosition.longitude)
-
-
-
-                                                      : const LatLng(0, 0),
-
-
-
-                                                  zoom: 14.0,
-
-
-
-                                                ),
-
-
-
-                                                markers: _markers,
-
-                                                myLocationEnabled: true,
-
-
-
-                                                myLocationButtonEnabled: true,
-
-                                                // Disable all gestures when saving tree
-                                                scrollGesturesEnabled: !_isSavingTree,
-                                                zoomGesturesEnabled: !_isSavingTree,
-                                                rotateGesturesEnabled: !_isSavingTree,
-                                                tiltGesturesEnabled: !_isSavingTree,
-
-
-
-                                                // onTap: _onMapTapped, // Removed
-
-
-
-                                              ),
-
-
-
-                                            ),
-
-
+      body: _isLoadingTrees
+          ? const Center(child: CircularProgressIndicator())
+          : GestureDetector(
+              onDoubleTapDown: (details) async {
+                if (_mapController != null) {
+                  final latLng = await _mapController!.getLatLng(
+                    ScreenCoordinate(
+                      x: details.globalPosition.dx.toInt(),
+
+                      y: details.globalPosition.dy.toInt(),
+                    ),
+                  );
+
+                  if (latLng != null) {
+                    _onMapTapped(latLng);
+                  }
+                }
+              },
+
+              onLongPressStart: (details) async {
+                if (_mapController != null) {
+                  final latLng = await _mapController!.getLatLng(
+                    ScreenCoordinate(
+                      x: details.globalPosition.dx.toInt(),
+
+                      y: details.globalPosition.dy.toInt(),
+                    ),
+                  );
+
+                  if (latLng != null) {
+                    _onMapTapped(latLng);
+                  }
+                }
+              },
+
+              child: GoogleMap(
+                onMapCreated: _onMapCreated,
+
+                initialCameraPosition: CameraPosition(
+                  // ignore: unnecessary_null_comparison
+                  target: currentPosition != null
+                      ? LatLng(
+                          currentPosition.latitude,
+                          currentPosition.longitude,
+                        )
+                      : const LatLng(0, 0),
+
+                  zoom: 14.0,
+                ),
+
+                markers: _markers,
+
+                mapType: MapType.satellite,
+
+                myLocationEnabled: true,
+
+                myLocationButtonEnabled: true,
+
+                // Disable all gestures when saving tree
+                scrollGesturesEnabled: !_isSavingTree,
+                zoomGesturesEnabled: !_isSavingTree,
+                rotateGesturesEnabled: !_isSavingTree,
+                tiltGesturesEnabled: !_isSavingTree,
+
+                // onTap: _onMapTapped, // Removed
+              ),
+            ),
 
       floatingActionButton: FloatingActionButton(
-
-
-
         onPressed: _isSavingTree ? null : _addTree, // Disable when saving
-
-
 
         backgroundColor: _isSavingTree ? Colors.grey : const Color(0xFF2E7D32),
 
-
-
-        child: _isSavingTree ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.add),
-
-
-
+        child: _isSavingTree
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Icon(Icons.add),
       ),
-
-
-
     );
-
-
-
   }
 
   void _showFilterDialog() async {
     final result = await showDialog<double>(
       context: context,
       builder: (context) {
-        return FilterDialog(
-          initialMinVerificationScore: _minVerificationScore,
-        );
+        return FilterDialog(initialMinVerificationScore: _minVerificationScore);
       },
     );
 
@@ -771,12 +564,6 @@ class _MyHomePageState extends State<MyHomePage> {
       _loadTrees(); // Reload trees with new filter
     }
   }
-
-
-
-
-
-
 
   void _onMapTapped(LatLng latLng) {
     if (!mounted) return; // Add mounted check
@@ -794,7 +581,8 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    _showAddTreeDialog(Position(
+    _showAddTreeDialog(
+      Position(
         latitude: latLng.latitude,
         longitude: latLng.longitude,
         timestamp: DateTime.now(),
@@ -804,7 +592,9 @@ class _MyHomePageState extends State<MyHomePage> {
         heading: 0.0,
         headingAccuracy: 0.0,
         speed: 0.0,
-        speedAccuracy: 0.0));
+        speedAccuracy: 0.0,
+      ),
+    );
   }
 
   void _showAddTreeDialog(Position position) {
@@ -819,7 +609,6 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (context) {
         return AddTreeDialog(
           onAdd: (name, fruitType, image) async {
-
             // Set saving state to disable map interactions
             if (mounted) {
               setState(() {
@@ -832,19 +621,25 @@ class _MyHomePageState extends State<MyHomePage> {
               String? imageUrl;
               if (image != null) {
                 try {
-                  imageUrl = await _firebaseService.uploadImage(image).timeout(
-                    const Duration(seconds: 30),
-                    onTimeout: () {
-                      throw Exception('Image upload timed out after 30 seconds');
-                    },
-                  );
+                  imageUrl = await _firebaseService
+                      .uploadImage(image)
+                      .timeout(
+                        const Duration(seconds: 30),
+                        onTimeout: () {
+                          throw Exception(
+                            'Image upload timed out after 30 seconds',
+                          );
+                        },
+                      );
                 } catch (e) {
                   debugPrint('[Main] Image upload failed: $e');
                   // Continue with tree creation without image
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Image upload failed: $e. Tree will be added without image.'),
+                        content: Text(
+                          'Image upload failed: $e. Tree will be added without image.',
+                        ),
                         backgroundColor: Colors.orange,
                         duration: const Duration(seconds: 3),
                       ),
@@ -876,7 +671,9 @@ class _MyHomePageState extends State<MyHomePage> {
               }
               return true;
             } on TreeRepositoryException catch (e) {
-              debugPrint('[Main] TreeRepositoryException: ${e.code} - ${e.message}');
+              debugPrint(
+                '[Main] TreeRepositoryException: ${e.code} - ${e.message}',
+              );
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -914,7 +711,8 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     ).then((_) {
       if (!mounted) return; // Add mounted check
-      _isDialogShowing = false; // Reset flag when dialog is dismissed (e.g., cancelled)
+      _isDialogShowing =
+          false; // Reset flag when dialog is dismissed (e.g., cancelled)
     });
   }
 
@@ -932,7 +730,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    try{
+    try {
       final position = await _firebaseService.getCurrentLocation();
       if (!mounted) return; // Add mounted check
       _showAddTreeDialog(position);
@@ -941,7 +739,4 @@ class _MyHomePageState extends State<MyHomePage> {
       debugPrint('[Main] Failed to get location: $e');
     }
   }
-
-
-
 }
