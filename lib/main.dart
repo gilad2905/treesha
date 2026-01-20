@@ -427,10 +427,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
-      } 
-
-
-
     } catch (e) {
 
       print('[MyHomePage] ❌ Error determining position: $e');
