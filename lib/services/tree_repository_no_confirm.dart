@@ -104,24 +104,26 @@ class TreeRepositoryNoConfirm {
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        print('[TreeRepo-REST] User not authenticated');
-        return [];
-      }
-
-      final token = await user.getIdToken();
-      if (token == null) {
-        print('[TreeRepo-REST] Could not get token');
-        return [];
-      }
 
       final url = Uri.parse(
         '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees',
       );
 
+      // Try with authentication first if user is logged in
+      Map<String, String> headers = {};
+      if (user != null) {
+        final token = await user.getIdToken();
+        if (token != null) {
+          headers['Authorization'] = 'Bearer $token';
+          print('[TreeRepo-REST] Fetching with authentication');
+        }
+      } else {
+        print('[TreeRepo-REST] Fetching without authentication (public read)');
+      }
+
       final response = await http.get(
         url,
-        headers: {'Authorization': 'Bearer $token'},
+        headers: headers,
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
