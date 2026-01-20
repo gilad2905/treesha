@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,8 +7,11 @@ import 'package:permission_handler/permission_handler.dart';
 
 
 class FirebaseService {
-  // CRITICAL: Don't initialize here! Access via getter to ensure settings are applied first
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  // Use the named "treesha" database instead of the default database
+  FirebaseFirestore get _firestore => FirebaseFirestore.instanceFor(
+    app: Firebase.app(),
+    databaseId: 'treesha',
+  );
   FirebaseStorage get _storage => FirebaseStorage.instance;
   final ImagePicker _imagePicker = ImagePicker();
 

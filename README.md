@@ -27,11 +27,23 @@ A Flutter app for tracking fruit trees around the world. View, add, and verify f
 - Firebase account
 - Google Maps API key
 
+### Unit Tests
+```bash
+cd /Users/gilad/projects/treesha_base/treesha
+flutter pub get
+```
+
+## Step 2: Run Tests (Optional but Recommended)
+
+```bash
+flutter test test/services/tree_repository_test.dart
+```
+
 ### Running the App
 
 ```bash
 cd ~/projects/treesha_base/treesha
-flutter run --web-hostname localhost --web-port 53491
+flutter run -d chrome --web-hostname localhost --web-port 53491
 ```
 
 ## Firebase Configuration
@@ -69,3 +81,82 @@ See: [Firebase API Keys Best Practices](https://firebase.google.com/docs/project
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+
+### Future features:
+
+Based on your app concept, here are features that would be valuable:
+
+  High Priority Features
+
+  1. Tree Photos Gallery
+    - Multiple photos per tree
+    - Photo verification (separate upvotes for photos)
+    - Community can add photos to existing trees
+  2. Seasonal Information
+    - When fruit is ripe (month range)
+    - Current season indicator
+    - Notifications when trees near you are in season
+  3. Tree Status Updates
+    - "Still here" / "Removed" reports
+    - Last verified date
+    - Health status (healthy, diseased, dead)
+  4. Search & Filters
+    - Search by fruit type
+    - Filter by distance
+    - Filter by season
+    - "Show only verified trees" (score > X)
+  5. User Contributions
+    - Track trees added per user
+    - User reputation score
+    - Badges (10 trees added, 100 votes, etc.)
+
+  Medium Priority
+
+  6. Directions
+    - "Navigate to this tree" button
+    - Opens Google Maps with directions
+  7. Tree Details
+    - Notes/description field
+    - Accessibility info (public/private property)
+    - Harvesting tips
+  8. Notifications
+    - Trees near you are in season
+    - Someone added a tree nearby
+    - Your tree got verified
+  9. Offline Support
+    - Cache nearby trees
+    - Work offline, sync later
+  10. Social Features
+    - Follow other users
+    - Share trees with friends
+    - Comments on trees
+
+  Advanced Features
+
+  11. Gamification
+    - Leaderboards
+    - Achievements
+    - Challenges ("Find 10 different fruit types")
+  12. Tree Clusters
+    - Group nearby trees (orchards, parks)
+    - Show cluster count on map
+  13. API/Export
+    - Export tree data (CSV, GeoJSON)
+    - Public API for researchers
+  14. Machine Learning
+    - Auto-identify fruit from photo
+    - Suggest fruit type based on description
+
+  ---
+  My Top 3 Recommendations
+
+  If you want to add features next, I'd suggest:
+
+  1. 🔍 Search by fruit type - Very useful, easy to implement
+  2. 📅 Seasonal info - Core to the use case (when to harvest)
+  3. 📸 Multiple photos - Builds trust, engages community
+
+
+can we translate this app to hebrew?
+  (don't just replace english to hebrew, have it ready to be multilaguage, according to user selection)

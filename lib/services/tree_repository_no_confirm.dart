@@ -188,4 +188,182 @@ class TreeRepositoryNoConfirm {
       return false;
     }
   }
+
+  /// Upvote a tree using REST API
+  Future<void> upvoteTree(String treeId, String userId) async {
+    print('[TreeRepo-REST] Upvoting tree $treeId for user $userId');
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final token = await user.getIdToken();
+      if (token == null) {
+        throw Exception('Could not get auth token');
+      }
+
+      // First, get the current tree data
+      final getUrl = Uri.parse(
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
+      );
+
+      final getResponse = await http.get(
+        getUrl,
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (getResponse.statusCode != 200) {
+        throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
+      }
+
+      final treeData = jsonDecode(getResponse.body);
+      final fields = treeData['fields'] as Map<String, dynamic>;
+
+      // Parse current votes
+      List<String> upvotes = (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              ?.map((v) => v['stringValue'] as String)
+              .toList() ?? [];
+      List<String> downvotes = (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              ?.map((v) => v['stringValue'] as String)
+              .toList() ?? [];
+
+      // Toggle upvote
+      if (upvotes.contains(userId)) {
+        upvotes.remove(userId);
+      } else {
+        upvotes.add(userId);
+        downvotes.remove(userId);
+      }
+
+      // Update the tree
+      final updateUrl = Uri.parse(
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes',
+      );
+
+      final updateBody = {
+        'fields': {
+          'upvotes': {
+            'arrayValue': {
+              'values': upvotes.map((id) => {'stringValue': id}).toList()
+            }
+          },
+          'downvotes': {
+            'arrayValue': {
+              'values': downvotes.map((id) => {'stringValue': id}).toList()
+            }
+          },
+        }
+      };
+
+      final updateResponse = await http.patch(
+        updateUrl,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updateBody),
+      ).timeout(const Duration(seconds: 10));
+
+      if (updateResponse.statusCode == 200) {
+        print('[TreeRepo-REST] ✅ Upvote successful');
+      } else {
+        throw Exception('Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}');
+      }
+    } catch (e, stack) {
+      print('[TreeRepo-REST] ❌ Upvote failed: $e');
+      print('[TreeRepo-REST] Stack: $stack');
+      rethrow;
+    }
+  }
+
+  /// Downvote a tree using REST API
+  Future<void> downvoteTree(String treeId, String userId) async {
+    print('[TreeRepo-REST] Downvoting tree $treeId for user $userId');
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final token = await user.getIdToken();
+      if (token == null) {
+        throw Exception('Could not get auth token');
+      }
+
+      // First, get the current tree data
+      final getUrl = Uri.parse(
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
+      );
+
+      final getResponse = await http.get(
+        getUrl,
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (getResponse.statusCode != 200) {
+        throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
+      }
+
+      final treeData = jsonDecode(getResponse.body);
+      final fields = treeData['fields'] as Map<String, dynamic>;
+
+      // Parse current votes
+      List<String> upvotes = (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              ?.map((v) => v['stringValue'] as String)
+              .toList() ?? [];
+      List<String> downvotes = (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
+              ?.map((v) => v['stringValue'] as String)
+              .toList() ?? [];
+
+      // Toggle downvote
+      if (downvotes.contains(userId)) {
+        downvotes.remove(userId);
+      } else {
+        downvotes.add(userId);
+        upvotes.remove(userId);
+      }
+
+      // Update the tree
+      final updateUrl = Uri.parse(
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes',
+      );
+
+      final updateBody = {
+        'fields': {
+          'upvotes': {
+            'arrayValue': {
+              'values': upvotes.map((id) => {'stringValue': id}).toList()
+            }
+          },
+          'downvotes': {
+            'arrayValue': {
+              'values': downvotes.map((id) => {'stringValue': id}).toList()
+            }
+          },
+        }
+      };
+
+      final updateResponse = await http.patch(
+        updateUrl,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updateBody),
+      ).timeout(const Duration(seconds: 10));
+
+      if (updateResponse.statusCode == 200) {
+        print('[TreeRepo-REST] ✅ Downvote successful');
+      } else {
+        throw Exception('Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}');
+      }
+    } catch (e, stack) {
+      print('[TreeRepo-REST] ❌ Downvote failed: $e');
+      print('[TreeRepo-REST] Stack: $stack');
+      rethrow;
+    }
+  }
 }

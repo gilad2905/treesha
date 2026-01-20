@@ -19,9 +19,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   User? _user;
 
+  // Local state to track votes for immediate UI updates
+  late List<String> _upvotes;
+  late List<String> _downvotes;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize local vote state from the tree
+    _upvotes = List.from(widget.tree.upvotes);
+    _downvotes = List.from(widget.tree.downvotes);
+
     _authService.user.listen((user) {
       if (mounted) {
         setState(() {
@@ -33,15 +42,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Add real-time updates via REST API if needed
-    // For now, just display the tree data passed in
-    final updatedTree = widget.tree;
-    bool isUpvoted = _user != null && updatedTree.upvotes.contains(_user!.uid);
-    bool isDownvoted = _user != null && updatedTree.downvotes.contains(_user!.uid);
+    bool isUpvoted = _user != null && _upvotes.contains(_user!.uid);
+    bool isDownvoted = _user != null && _downvotes.contains(_user!.uid);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(updatedTree.name),
+        title: Text(widget.tree.name),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SingleChildScrollView(
@@ -51,18 +57,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tree Name: ${updatedTree.name}',
+                'Tree Name: ${widget.tree.name}',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Fruit Type: ${updatedTree.fruitType}',
+                'Fruit Type: ${widget.tree.fruitType}',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
-              updatedTree.imageUrl.isNotEmpty
+              widget.tree.imageUrl.isNotEmpty
                   ? Image.network(
-                      updatedTree.imageUrl,
+                      widget.tree.imageUrl,
                       fit: BoxFit.contain,
                       loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                         if (loadingProgress == null) {
@@ -82,56 +88,129 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     )
                   : const SizedBox.shrink(),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.thumb_up, color: isUpvoted ? Colors.green : Colors.grey),
-                    onPressed: _user == null ? null : () async {
-                      try {
-                        await _firebaseService.upvoteTree(updatedTree.id, _user!.uid);
-                        // Show success message
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Upvoted! Close and reopen to see changes.')),
-                        );
-                      } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error upvoting tree: $e')),
-                        );
-                      }
-                    },
-                  ),
-                  Text('${updatedTree.upvotes.length}'),
-                  IconButton(
-                    icon: Icon(Icons.thumb_down, color: isDownvoted ? Colors.red : Colors.grey),
-                    onPressed: _user == null ? null : () async {
-                      try {
-                        await _firebaseService.downvoteTree(updatedTree.id, _user!.uid);
-                        // Show success message
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Downvoted! Close and reopen to see changes.')),
-                        );
-                      } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error downvoting tree: $e')),
-                        );
-                      }
-                    },
-                  ),
-                  Text('${updatedTree.downvotes.length}'),
-                ],
+              // Voting section with improved layout
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Verification Score: ${_upvotes.length - _downvotes.length}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        // Upvote button
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.thumb_up,
+                                color: isUpvoted ? Colors.green : Colors.grey,
+                                size: 32,
+                              ),
+                              onPressed: _user == null ? null : () async {
+                                // Update local state immediately for instant feedback
+                                setState(() {
+                                  if (_upvotes.contains(_user!.uid)) {
+                                    _upvotes.remove(_user!.uid);
+                                  } else {
+                                    _upvotes.add(_user!.uid);
+                                    _downvotes.remove(_user!.uid);
+                                  }
+                                });
+
+                                // Then update the database
+                                try {
+                                  await _firebaseService.upvoteTree(widget.tree.id, _user!.uid);
+                                } catch (e) {
+                                  // Revert on error
+                                  setState(() {
+                                    _upvotes = List.from(widget.tree.upvotes);
+                                    _downvotes = List.from(widget.tree.downvotes);
+                                  });
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error upvoting: $e')),
+                                  );
+                                }
+                              },
+                            ),
+                            Text(
+                              '${_upvotes.length}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Downvote button
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.thumb_down,
+                                color: isDownvoted ? Colors.red : Colors.grey,
+                                size: 32,
+                              ),
+                              onPressed: _user == null ? null : () async {
+                                // Update local state immediately for instant feedback
+                                setState(() {
+                                  if (_downvotes.contains(_user!.uid)) {
+                                    _downvotes.remove(_user!.uid);
+                                  } else {
+                                    _downvotes.add(_user!.uid);
+                                    _upvotes.remove(_user!.uid);
+                                  }
+                                });
+
+                                // Then update the database
+                                try {
+                                  await _firebaseService.downvoteTree(widget.tree.id, _user!.uid);
+                                } catch (e) {
+                                  // Revert on error
+                                  setState(() {
+                                    _upvotes = List.from(widget.tree.upvotes);
+                                    _downvotes = List.from(widget.tree.downvotes);
+                                  });
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error downvoting: $e')),
+                                  );
+                                }
+                              },
+                            ),
+                            Text(
+                              '${_downvotes.length}',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               Text(
-                'Location: Lat ${updatedTree.position.latitude}, Lng ${updatedTree.position.longitude}',
+                'Location: Lat ${widget.tree.position.latitude}, Lng ${widget.tree.position.longitude}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                'Added on: ${updatedTree.createdAt.toDate().toLocal()}',
+                'Added on: ${widget.tree.createdAt.toDate().toLocal()}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
