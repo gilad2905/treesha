@@ -510,11 +510,32 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          // Filter button
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            tooltip: l10n.filters,
-            onPressed: () => _showFilterDialog(),
+          // Filter button with active indicator
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                tooltip: l10n.filters,
+                onPressed: () => _showFilterDialog(),
+              ),
+              // Show indicator badge when filter is active (not default value)
+              if (_minVerificationScore != 0.0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 8,
+                      minHeight: 8,
+                    ),
+                  ),
+                ),
+            ],
           ),
           // Diagnostic button
           IconButton(
