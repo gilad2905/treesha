@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/fruit_model.dart'; // Import fruit_model
 import 'package:treesha/services/fruit_service.dart'; // Import fruit_service
 
@@ -75,6 +76,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () async {
         // Prevent back button during loading
@@ -91,7 +93,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
         return true;
       },
       child: AlertDialog(
-      title: const Text('Add a New Tree'),
+      title: Text(l10n.addTree),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -100,10 +102,10 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Tree Name'),
+                decoration: InputDecoration(labelText: l10n.treeName),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a tree name';
+                    return l10n.pleaseEnterTreeName;
                   }
                   return null;
                 },
@@ -111,20 +113,20 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
               // Manual TypeAhead-like functionality
               TextFormField(
                 controller: _fruitTypeController,
-                decoration: const InputDecoration(
-                  labelText: 'Fruit Type',
-                  hintText: 'Search for fruit type',
+                decoration: InputDecoration(
+                  labelText: l10n.fruitType,
+                  hintText: l10n.searchFruitType,
                 ),
                 onChanged: _onFruitTypeChanged,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a fruit type';
+                    return l10n.pleaseEnterFruitType;
                   }
                   // Check if the entered value is one of the valid fruit types
                   if (_allFruits.any((fruit) => fruit.type == value)) {
                     return null; // Valid fruit selected
                   }
-                  return 'Please select a valid fruit type from the list';
+                  return l10n.pleaseSelectValidFruit;
                 },
               ),
               // Display suggestions
@@ -158,12 +160,12 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                   TextButton.icon(
                     onPressed: _isLoading ? null : _pickImage,
                     icon: const Icon(Icons.image),
-                    label: const Text('Add Image'),
+                    label: Text(l10n.addImage),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      _image?.name ?? 'No image selected',
+                      _image?.name ?? l10n.noImageSelected,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -180,7 +182,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
             Navigator.of(context).pop();
           },
           child: Text(
-            'Cancel',
+            l10n.cancel,
             style: TextStyle(color: _isLoading ? Colors.grey : null),
           ),
         ),
@@ -247,7 +249,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text('Add'),
+              : Text(l10n.add),
         ),
       ],
     ),

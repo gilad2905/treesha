@@ -1,0 +1,192 @@
+{
+  "@@locale": "en",
+  "appTitle": "Treesha",
+  "@appTitle": {
+    "description": "The application title"
+  },
+
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button text"
+  },
+
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Sign out button text"
+  },
+
+  "addTree": "Add a New Tree",
+  "@addTree": {
+    "description": "Add tree dialog title"
+  },
+
+  "treeName": "Tree Name",
+  "@treeName": {
+    "description": "Tree name input label"
+  },
+
+  "fruitType": "Fruit Type",
+  "@fruitType": {
+    "description": "Fruit type input label"
+  },
+
+  "searchFruitType": "Search for fruit type",
+  "@searchFruitType": {
+    "description": "Fruit type search hint"
+  },
+
+  "addImage": "Add Image",
+  "@addImage": {
+    "description": "Add image button text"
+  },
+
+  "noImageSelected": "No image selected",
+  "@noImageSelected": {
+    "description": "No image selected text"
+  },
+
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+
+  "add": "Add",
+  "@add": {
+    "description": "Add button text"
+  },
+
+  "pleaseEnterTreeName": "Please enter a tree name",
+  "@pleaseEnterTreeName": {
+    "description": "Tree name validation error"
+  },
+
+  "pleaseEnterFruitType": "Please enter a fruit type",
+  "@pleaseEnterFruitType": {
+    "description": "Fruit type validation error"
+  },
+
+  "pleaseSelectValidFruit": "Please select a valid fruit type from the list",
+  "@pleaseSelectValidFruit": {
+    "description": "Valid fruit selection error"
+  },
+
+  "treeAddedSuccessfully": "🌳 Tree added successfully!",
+  "@treeAddedSuccessfully": {
+    "description": "Success message for tree addition"
+  },
+
+  "pleaseSignInToAddTree": "Please sign in to add a tree",
+  "@pleaseSignInToAddTree": {
+    "description": "Sign in required message"
+  },
+
+  "verificationScore": "Verification Score: {score}",
+  "@verificationScore": {
+    "description": "Verification score label",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+
+  "voteUpdated": "Vote updated! Close and reopen to see changes.",
+  "@voteUpdated": {
+    "description": "Vote update success message"
+  },
+
+  "errorUpvoting": "Error upvoting: {error}",
+  "@errorUpvoting": {
+    "description": "Upvote error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "errorDownvoting": "Error downvoting: {error}",
+  "@errorDownvoting": {
+    "description": "Downvote error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "treeNameLabel": "Tree Name: {name}",
+  "@treeNameLabel": {
+    "description": "Tree name display label",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "fruitTypeLabel": "Fruit Type: {type}",
+  "@fruitTypeLabel": {
+    "description": "Fruit type display label",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+
+  "location": "Location: Lat {lat}, Lng {lng}",
+  "@location": {
+    "description": "Location display",
+    "placeholders": {
+      "lat": {
+        "type": "double",
+        "format": "decimalPattern"
+      },
+      "lng": {
+        "type": "double",
+        "format": "decimalPattern"
+      }
+    }
+  },
+
+  "addedOn": "Added on: {date}",
+  "@addedOn": {
+    "description": "Date added label",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "minimumVerificationScore": "Minimum Verification Score: {score}",
+  "@minimumVerificationScore": {
+    "description": "Minimum verification score filter label",
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+
+  "somethingWentWrong": "Something went wrong",
+  "@somethingWentWrong": {
+    "description": "Generic error message"
+  },
+
+  "language": "Language",
+  "@language": {
+    "description": "Language selection label"
+  },
+
+  "english": "English",
+  "@english": {
+    "description": "English language name"
+  },
+
+  "hebrew": "עברית",
+  "@hebrew": {
+    "description": "Hebrew language name in Hebrew"
+  }
+}

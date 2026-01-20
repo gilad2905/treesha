@@ -4,12 +4,18 @@ import 'package:treesha/services/firebase_auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 import 'package:geolocator/geolocator.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+
+import 'package:treesha/l10n/app_localizations.dart';
+
+import 'package:treesha/providers/locale_provider.dart';
 
 
 
@@ -78,7 +84,12 @@ void main() async {
     // Still run the app, but it will likely fail
   }
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => LocaleProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 
@@ -92,19 +103,35 @@ class MyApp extends StatelessWidget {
   @override
 
   Widget build(BuildContext context) {
+    return Consumer<LocaleProvider>(
+      builder: (context, localeProvider, child) {
+        return MaterialApp(
 
-    return MaterialApp(
+          title: 'Treesha',
 
-      title: 'Treesha',
+          // Localization configuration
+          locale: localeProvider.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+            Locale('he'), // Hebrew
+          ],
 
-      theme: ThemeData(
+          theme: ThemeData(
 
-        primarySwatch: Colors.green,
+            primarySwatch: Colors.green,
 
-        primaryColor: const Color(0xFF2E7D32),
+            primaryColor: const Color(0xFF2E7D32),
 
-      ),
-      home: const MyHomePage(),
+          ),
+          home: const MyHomePage(),
+        );
+      },
     );
   }
 }
@@ -450,7 +477,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   Widget build(BuildContext context) {
-
+    final l10n = AppLocalizations.of(context)!;
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
 
 
     final currentPosition = _currentPosition; // Local non-nullable variable
@@ -460,9 +488,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
       appBar: AppBar(
-        title: const Text('Treesha'),
+        title: Text(l10n.appTitle),
         backgroundColor: const Color(0xFF2E7D32),
         actions: [
+          // Language selector
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language),
+            tooltip: l10n.language,
+            onSelected: (Locale locale) {
+              localeProvider.setLocale(locale);
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
+              PopupMenuItem<Locale>(
+                value: const Locale('en'),
+                child: Text(l10n.english),
+              ),
+              PopupMenuItem<Locale>(
+                value: const Locale('he'),
+                child: Text(l10n.hebrew),
+              ),
+            ],
+          ),
           // Diagnostic button
           IconButton(
             icon: const Icon(Icons.bug_report),
@@ -484,7 +530,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () async {
                 await _authService.signInWithGoogle();
               },
-              child: const Text('Sign In', style: TextStyle(color: Colors.white)),
+              child: Text(l10n.signIn, style: const TextStyle(color: Colors.white)),
             )
           else
             Row(
@@ -494,7 +540,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   onPressed: () async {
                     await _authService.signOut();
                   },
-                  child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                  child: Text(l10n.signOut, style: const TextStyle(color: Colors.white)),
                 )
               ],
             )
@@ -527,7 +573,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
-                      Text('Minimum Verification Score: ${_minVerificationScore.toInt()}'),
+                      Text(l10n.minimumVerificationScore(_minVerificationScore.toInt())),
 
 
 
@@ -830,6 +876,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_isDialogShowing) return; // Prevent multiple dialogs
     _isDialogShowing = true; // Set flag
 
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -894,8 +941,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('🌳 Tree added successfully!'),
+                  SnackBar(
+                    content: Text(l10n.treeAddedSuccessfully),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -950,13 +997,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _addTree() async {
+    final l10n = AppLocalizations.of(context)!;
     // Check if user is logged in before allowing tree addition
     if (_user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please sign in to add a tree'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(l10n.pleaseSignInToAddTree),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;

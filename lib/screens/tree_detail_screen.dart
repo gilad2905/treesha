@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
 import 'package:treesha/services/firebase_service.dart';
@@ -42,6 +42,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     bool isUpvoted = _user != null && _upvotes.contains(_user!.uid);
     bool isDownvoted = _user != null && _downvotes.contains(_user!.uid);
 
@@ -57,12 +58,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tree Name: ${widget.tree.name}',
+                l10n.treeNameLabel(widget.tree.name),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Fruit Type: ${widget.tree.fruitType}',
+                l10n.fruitTypeLabel(widget.tree.fruitType),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
@@ -98,7 +99,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Verification Score: ${_upvotes.length - _downvotes.length}',
+                      l10n.verificationScore(_upvotes.length - _downvotes.length),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -138,7 +139,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                   });
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error upvoting: $e')),
+                                    SnackBar(content: Text(l10n.errorUpvoting(e.toString()))),
                                   );
                                 }
                               },
@@ -184,7 +185,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                   });
                                   if (!mounted) return;
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error downvoting: $e')),
+                                    SnackBar(content: Text(l10n.errorDownvoting(e.toString()))),
                                   );
                                 }
                               },
@@ -206,11 +207,11 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Location: Lat ${widget.tree.position.latitude}, Lng ${widget.tree.position.longitude}',
+                l10n.location(widget.tree.position.latitude, widget.tree.position.longitude),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                'Added on: ${widget.tree.createdAt.toDate().toLocal()}',
+                l10n.addedOn(widget.tree.createdAt.toDate().toLocal().toString()),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
