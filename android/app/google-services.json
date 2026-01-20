@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "859938357630",
+    "project_id": "applied-primacy-294221",
+    "storage_bucket": "applied-primacy-294221.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:859938357630:android:0b04b2e4b0ea40498ab32f",
+        "android_client_info": {
+          "package_name": "com.example.treesha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYEDJjk_-lA473yrbvYU0Ay595EhUnlGo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

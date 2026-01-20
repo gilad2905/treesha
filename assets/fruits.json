@@ -1,0 +1,27 @@
+[
+  { "fruit_type": "Orange", "fruit_edible_season": "Winter" },
+  { "fruit_type": "Mandarin / Clementine", "fruit_edible_season": "Winter" },
+  { "fruit_type": "Grapefruit / Pomelo", "fruit_edible_season": "Winter" },
+  { "fruit_type": "Lemon", "fruit_edible_season": "Winter" },
+  { "fruit_type": "Strawberry", "fruit_edible_season": "Spring" },
+  { "fruit_type": "Loquat (Shesek)", "fruit_edible_season": "Spring" },
+  { "fruit_type": "Apricot", "fruit_edible_season": "Spring" },
+  { "fruit_type": "Cherry", "fruit_edible_season": "Late Spring" },
+  { "fruit_type": "Melon", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Watermelon", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Fig", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Grape", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Peach", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Nectarine", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Plum", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Mango", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Pomegranate", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Persimmon", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Avocado", "fruit_edible_season": "Winter–Spring" },
+  { "fruit_type": "Guava", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Date (fresh)", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Quince (Havush)", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Lychee", "fruit_edible_season": "Early Summer" },
+  { "fruit_type": "Kiwi", "fruit_edible_season": "Autumn–Winter" }
+]
+
