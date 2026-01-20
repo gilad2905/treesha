@@ -294,6 +294,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _updateMarkers() {
     final newMarkers = <Marker>{};
 
+    print('[MyHomePage] Updating markers...');
+
     // Add tree markers
     for (var tree in _trees) {
       newMarkers.add(
@@ -313,8 +315,11 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
+    print('[MyHomePage] Added ${_trees.length} tree markers');
+
     // Add user location marker (for web support)
     if (_currentPosition != null) {
+      print('[MyHomePage] Adding user location marker at: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
       newMarkers.add(
         Marker(
           markerId: const MarkerId('user_location'),
@@ -324,9 +329,13 @@ class _MyHomePageState extends State<MyHomePage> {
           zIndex: 1000, // Show on top of other markers
         ),
       );
+      print('[MyHomePage] User location marker added successfully');
+    } else {
+      print('[MyHomePage] No current position available, skipping user location marker');
     }
 
     _markers = newMarkers;
+    print('[MyHomePage] Total markers on map: ${_markers.length}');
   }
 
 
@@ -337,7 +346,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _determinePosition() async {
 
-
+    print('[MyHomePage] Starting location determination...');
 
     try {
 
@@ -345,7 +354,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
       Position position = await _firebaseService.getCurrentLocation();
 
-
+      print('[MyHomePage] ✅ Location received: ${position.latitude}, ${position.longitude}');
+      print('[MyHomePage] Accuracy: ${position.accuracy}m');
 
       if (!mounted) return; // Add mounted check
       setState(() {
@@ -355,7 +365,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _currentPosition = position;
         _updateMarkers(); // Update markers to include user location
 
-
+        print('[MyHomePage] ✅ User location marker added to map');
 
       });
 
@@ -407,9 +417,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     } catch (e) {
 
+      print('[MyHomePage] ❌ Error determining position: $e');
+      print('[MyHomePage] Location may not be available or permission denied');
 
-
-      // Log error if necessary, but remove print for production
     }
 
 
