@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:treesha/l10n/app_localizations.dart';
+import 'package:treesha/models/tree_filters.dart';
 
 class FilterDialog extends StatefulWidget {
-  final double initialMinVerificationScore;
+  final TreeFilters initialFilters;
+  final List<String> availableFruitTypes;
 
-  const FilterDialog({super.key, required this.initialMinVerificationScore});
+  const FilterDialog({
+    super.key,
+    required this.initialFilters,
+    required this.availableFruitTypes,
+  });
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
 }
 
 class _FilterDialogState extends State<FilterDialog> {
-  late double _minVerificationScore;
+  late DateTime? _lastVerifiedAfter;
+  late DateTime? _lastAddedAfter;
+  late Set<String> _selectedFruitTypes;
+  late TextEditingController _treeNameController;
 
   @override
   void initState() {
     super.initState();
-    _minVerificationScore = widget.initialMinVerificationScore;
+    _lastVerifiedAfter = widget.initialFilters.lastVerifiedAfter;
+    _lastAddedAfter = widget.initialFilters.lastAddedAfter;
+    _selectedFruitTypes = Set.from(widget.initialFilters.fruitTypes);
+    _treeNameController = TextEditingController(
+      text: widget.initialFilters.treeName,
+    );
+  }
+
+  @override
+  void dispose() {
+    _treeNameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -30,38 +50,157 @@ class _FilterDialogState extends State<FilterDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Verification Score Filter
+            // Tree Name Filter
             Text(
-              l10n.verificationScoreFilter,
+              'Tree Name',
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Text(
-              l10n.minimumVerificationScore(_minVerificationScore.toInt()),
-              style: Theme.of(context).textTheme.bodyMedium,
+            TextField(
+              controller: _treeNameController,
+              decoration: const InputDecoration(
+                hintText: 'Search by tree name...',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
             ),
-            Slider(
-              value: _minVerificationScore,
-              min: -10.0,
-              max: 10.0,
-              divisions: 20,
-              label: _minVerificationScore.round().toString(),
-              onChanged: (double value) {
-                setState(() {
-                  _minVerificationScore = value;
-                });
-              },
+            const SizedBox(height: 24),
+
+            // Fruit Type Filter
+            Text(
+              'Fruit Type',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            if (widget.availableFruitTypes.isEmpty)
+              const Text(
+                'No fruit types available',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: widget.availableFruitTypes.map((fruitType) {
+                  final isSelected = _selectedFruitTypes.contains(fruitType);
+                  return FilterChip(
+                    label: Text(fruitType),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedFruitTypes.add(fruitType);
+                        } else {
+                          _selectedFruitTypes.remove(fruitType);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            const SizedBox(height: 24),
+
+            // Last Verified Date Filter
+            Text(
+              'Last Verified After',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _lastVerifiedAfter == null
+                        ? 'No date filter'
+                        : _formatDate(_lastVerifiedAfter!),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: _lastVerifiedAfter ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (date != null) {
+                      setState(() {
+                        _lastVerifiedAfter = date;
+                      });
+                    }
+                  },
+                ),
+                if (_lastVerifiedAfter != null)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _lastVerifiedAfter = null;
+                      });
+                    },
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
-            // Placeholder for future filters
+
+            // Last Added Date Filter
             Text(
-              l10n.moreFiltersComingSoon,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-                fontStyle: FontStyle.italic,
-              ),
+              'Added After',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _lastAddedAfter == null
+                        ? 'No date filter'
+                        : _formatDate(_lastAddedAfter!),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: _lastAddedAfter ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (date != null) {
+                      setState(() {
+                        _lastAddedAfter = date;
+                      });
+                    }
+                  },
+                ),
+                if (_lastAddedAfter != null)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      setState(() {
+                        _lastAddedAfter = null;
+                      });
+                    },
+                  ),
+              ],
             ),
           ],
         ),
@@ -75,18 +214,29 @@ class _FilterDialogState extends State<FilterDialog> {
         ),
         TextButton(
           onPressed: () {
-            // Reset to default value (0)
-            Navigator.of(context).pop(0.0);
+            // Reset to empty filters
+            Navigator.of(context).pop(TreeFilters.empty);
           },
           child: Text(l10n.reset),
         ),
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop(_minVerificationScore);
+            // Apply filters
+            final filters = TreeFilters(
+              lastVerifiedAfter: _lastVerifiedAfter,
+              lastAddedAfter: _lastAddedAfter,
+              fruitTypes: _selectedFruitTypes,
+              treeName: _treeNameController.text.trim(),
+            );
+            Navigator.of(context).pop(filters);
           },
           child: Text(l10n.apply),
         ),
       ],
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

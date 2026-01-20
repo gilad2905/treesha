@@ -33,6 +33,7 @@ import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/widgets/add_tree_dialog.dart';
 import 'package:treesha/widgets/filter_dialog.dart';
 import 'package:treesha/screens/tree_detail_screen.dart';
+import 'package:treesha/models/tree_filters.dart';
 
 // You must setup firebase CLI and run `flutterfire configure`
 
@@ -149,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Position? _currentPosition;
 
-  double _minVerificationScore = 0.0;
+  TreeFilters _filters = TreeFilters.empty;
 
   bool _isDialogShowing = false;
   bool _isSavingTree = false; // Track if tree save is in progress
@@ -257,10 +258,44 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }).toList();
 
-      // Filter by verification score
+      // Apply filters
       final filteredTrees = trees.where((tree) {
-        final score = tree.upvotes.length - tree.downvotes.length;
-        return score >= _minVerificationScore;
+        // Filter by tree name
+        if (_filters.treeName.isNotEmpty) {
+          if (!tree.name
+              .toLowerCase()
+              .contains(_filters.treeName.toLowerCase())) {
+            return false;
+          }
+        }
+
+        // Filter by fruit types (if any selected)
+        if (_filters.fruitTypes.isNotEmpty) {
+          if (!_filters.fruitTypes.contains(tree.fruitType)) {
+            return false;
+          }
+        }
+
+        // Filter by last verified date
+        if (_filters.lastVerifiedAfter != null) {
+          if (tree.lastVerifiedAt == null) {
+            return false; // Tree has never been verified
+          }
+          final verifiedDate = tree.lastVerifiedAt!.toDate();
+          if (verifiedDate.isBefore(_filters.lastVerifiedAfter!)) {
+            return false;
+          }
+        }
+
+        // Filter by added date
+        if (_filters.lastAddedAfter != null) {
+          final addedDate = tree.createdAt.toDate();
+          if (addedDate.isBefore(_filters.lastAddedAfter!)) {
+            return false;
+          }
+        }
+
+        return true; // Passed all filters
       }).toList();
 
       if (!mounted) return;
@@ -406,14 +441,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 tooltip: l10n.filters,
                 onPressed: () => _showFilterDialog(),
               ),
-              // Show indicator badge when filter is active (not default value)
-              if (_minVerificationScore != 0.0)
+              // Show indicator badge when filters are active
+              if (_filters.hasActiveFilters)
                 Positioned(
                   right: 8,
                   top: 8,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.orange,
                       shape: BoxShape.circle,
                     ),
@@ -549,19 +584,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showFilterDialog() async {
-    final result = await showDialog<double>(
+    // Get unique fruit types from all trees
+    final allTreesData = await _treeRepositoryRest.getAllTrees();
+    final availableFruitTypes = allTreesData
+        .map((data) => data['fruitType'] as String)
+        .where((type) => type.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    if (!mounted) return;
+
+    final result = await showDialog<TreeFilters>(
       context: context,
       builder: (context) {
-        return FilterDialog(initialMinVerificationScore: _minVerificationScore);
+        return FilterDialog(
+          initialFilters: _filters,
+          availableFruitTypes: availableFruitTypes,
+        );
       },
     );
 
-    // If user pressed Apply (result is not null), update the filter
+    // If user pressed Apply (result is not null), update the filters
     if (result != null) {
       setState(() {
-        _minVerificationScore = result;
+        _filters = result;
       });
-      _loadTrees(); // Reload trees with new filter
+      _loadTrees(); // Reload trees with new filters
     }
   }
 
