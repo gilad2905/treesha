@@ -294,6 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _updateMarkers() {
     final newMarkers = <Marker>{};
 
+    // Add tree markers
     for (var tree in _trees) {
       newMarkers.add(
         Marker(
@@ -308,6 +309,19 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             );
           },
+        ),
+      );
+    }
+
+    // Add user location marker (for web support)
+    if (_currentPosition != null) {
+      newMarkers.add(
+        Marker(
+          markerId: const MarkerId('user_location'),
+          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: const InfoWindow(title: 'Your Location'),
+          zIndex: 1000, // Show on top of other markers
         ),
       );
     }
@@ -339,6 +353,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
         _currentPosition = position;
+        _updateMarkers(); // Update markers to include user location
 
 
 
