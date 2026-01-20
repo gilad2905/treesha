@@ -324,9 +324,20 @@ class _MyHomePageState extends State<MyHomePage> {
         Marker(
           markerId: const MarkerId('user_location'),
           position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: const InfoWindow(title: 'Your Location'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+          infoWindow: const InfoWindow(
+            title: '📍 Your Location',
+            snippet: 'Tap to center map here',
+          ),
           zIndex: 1000, // Show on top of other markers
+          onTap: () {
+            // Center map on user location when tapped
+            _mapController?.animateCamera(
+              CameraUpdate.newLatLng(
+                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+              ),
+            );
+          },
         ),
       );
       print('[MyHomePage] User location marker added successfully');
