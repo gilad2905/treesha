@@ -286,6 +286,18 @@ class _MyHomePageState extends State<MyHomePage> {
         final createdAtStr = data['createdAt'] as String? ?? DateTime.now().toIso8601String();
         final createdAtDateTime = DateTime.parse(createdAtStr);
 
+        // Parse lastVerifiedAt if it exists
+        Timestamp? lastVerifiedAt;
+        final lastVerifiedAtStr = data['lastVerifiedAt'] as String?;
+        if (lastVerifiedAtStr != null && lastVerifiedAtStr.isNotEmpty) {
+          try {
+            final lastVerifiedDateTime = DateTime.parse(lastVerifiedAtStr);
+            lastVerifiedAt = Timestamp.fromDate(lastVerifiedDateTime);
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
+
         return Tree(
           id: data['id'] as String,
           userId: data['userId'] as String,
@@ -299,6 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
           createdAt: Timestamp.fromDate(createdAtDateTime),
           upvotes: List<String>.from(data['upvotes'] as List),
           downvotes: List<String>.from(data['downvotes'] as List),
+          lastVerifiedAt: lastVerifiedAt,
         );
       }).toList();
 
@@ -767,6 +780,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onMapTapped(LatLng latLng) {
     if (!mounted) return; // Add mounted check
+
+    final l10n = AppLocalizations.of(context)!;
+
+    // Check if user is logged in
+    if (_user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.pleaseSignInToAddTree),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     _showAddTreeDialog(Position(
         latitude: latLng.latitude,
         longitude: latLng.longitude,

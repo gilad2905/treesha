@@ -12,6 +12,7 @@ class Tree {
   final Timestamp createdAt;
   final List<String> upvotes;
   final List<String> downvotes;
+  final Timestamp? lastVerifiedAt; // Timestamp of last upvote
 
   int get verificationScore => upvotes.length - downvotes.length;
 
@@ -25,6 +26,7 @@ class Tree {
     required this.createdAt,
     required this.upvotes,
     required this.downvotes,
+    this.lastVerifiedAt,
   });
 
   factory Tree.fromFirestore(DocumentSnapshot doc) {
@@ -39,6 +41,7 @@ class Tree {
       createdAt: data['createdAt'] ?? Timestamp.now(),
       upvotes: List<String>.from(data['upvotes'] ?? []),
       downvotes: List<String>.from(data['downvotes'] ?? []),
+      lastVerifiedAt: data['lastVerifiedAt'],
     );
   }
 }

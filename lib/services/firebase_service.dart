@@ -254,16 +254,26 @@ class FirebaseService {
           // Error casting downvotes for tree $treeId: $e
         }
 
+        bool isAddingUpvote = !upvotes.contains(userId);
+
         if (upvotes.contains(userId)) {
           upvotes.remove(userId);
         } else {
           upvotes.add(userId);
           downvotes.remove(userId);
         }
-        transaction.update(treeRef, {
+
+        final updateData = <String, dynamic>{
           'upvotes': upvotes,
           'downvotes': downvotes,
-        });
+        };
+
+        // Update lastVerifiedAt when adding an upvote
+        if (isAddingUpvote) {
+          updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+        }
+
+        transaction.update(treeRef, updateData);
       });
     } on FirebaseException catch (e) {
       rethrow; // Use rethrow

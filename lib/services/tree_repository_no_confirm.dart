@@ -147,6 +147,7 @@ class TreeRepositoryNoConfirm {
             'longitude': fields['position']?['geoPointValue']?['longitude'] ?? 0.0,
             'imageUrl': fields['imageUrl']?['stringValue'] ?? '',
             'createdAt': fields['createdAt']?['timestampValue'] ?? '',
+            'lastVerifiedAt': fields['lastVerifiedAt']?['timestampValue'],
             'upvotes': (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
                     ?.map((v) => v['stringValue'] as String)
                     .toList() ?? [],
@@ -232,6 +233,8 @@ class TreeRepositoryNoConfirm {
               .toList() ?? [];
 
       // Toggle upvote
+      bool isAddingUpvote = !upvotes.contains(userId);
+
       if (upvotes.contains(userId)) {
         upvotes.remove(userId);
       } else {
@@ -239,24 +242,39 @@ class TreeRepositoryNoConfirm {
         downvotes.remove(userId);
       }
 
+      // Build update mask
+      String updateMask = 'updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes';
+      if (isAddingUpvote) {
+        updateMask += '&updateMask.fieldPaths=lastVerifiedAt';
+      }
+
       // Update the tree
       final updateUrl = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes',
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?$updateMask',
       );
 
+      final updateFields = <String, dynamic>{
+        'upvotes': {
+          'arrayValue': {
+            'values': upvotes.map((id) => {'stringValue': id}).toList()
+          }
+        },
+        'downvotes': {
+          'arrayValue': {
+            'values': downvotes.map((id) => {'stringValue': id}).toList()
+          }
+        },
+      };
+
+      // Add lastVerifiedAt when adding an upvote
+      if (isAddingUpvote) {
+        updateFields['lastVerifiedAt'] = <String, dynamic>{
+          'timestampValue': DateTime.now().toUtc().toIso8601String()
+        };
+      }
+
       final updateBody = {
-        'fields': {
-          'upvotes': {
-            'arrayValue': {
-              'values': upvotes.map((id) => {'stringValue': id}).toList()
-            }
-          },
-          'downvotes': {
-            'arrayValue': {
-              'values': downvotes.map((id) => {'stringValue': id}).toList()
-            }
-          },
-        }
+        'fields': updateFields
       };
 
       final updateResponse = await http.patch(

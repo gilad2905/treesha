@@ -4,6 +4,7 @@ import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
 import 'package:treesha/services/firebase_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TreeDetailScreen extends StatefulWidget {
   final Tree tree;
@@ -38,6 +39,24 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
         });
       }
     });
+  }
+
+  /// Open Google Maps with directions to the tree
+  Future<void> _navigateToTree() async {
+    final lat = widget.tree.position.latitude;
+    final lng = widget.tree.position.longitude;
+
+    // Google Maps URL for directions
+    final url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+
+    try {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error opening maps: $e')),
+      );
+    }
   }
 
   @override
@@ -117,7 +136,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                 color: isUpvoted ? Colors.green : Colors.grey,
                                 size: 32,
                               ),
-                              onPressed: _user == null ? null : () async {
+                              onPressed: () async {
+                                // Check if user is logged in
+                                if (_user == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('You need to be logged in to verify trees'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 // Update local state immediately for instant feedback
                                 setState(() {
                                   if (_upvotes.contains(_user!.uid)) {
@@ -163,7 +193,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                 color: isDownvoted ? Colors.red : Colors.grey,
                                 size: 32,
                               ),
-                              onPressed: _user == null ? null : () async {
+                              onPressed: () async {
+                                // Check if user is logged in
+                                if (_user == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('You need to be logged in to unverify trees'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 // Update local state immediately for instant feedback
                                 setState(() {
                                   if (_downvotes.contains(_user!.uid)) {
@@ -213,6 +254,31 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               Text(
                 l10n.addedOn(widget.tree.createdAt.toDate().toLocal().toString()),
                 style: Theme.of(context).textTheme.bodySmall,
+              ),
+              if (widget.tree.lastVerifiedAt != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Last verified: ${widget.tree.lastVerifiedAt!.toDate().toLocal().toString().split('.')[0]}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              // Navigate to tree button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToTree,
+                  icon: const Icon(Icons.directions),
+                  label: const Text('Navigate to this tree'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),
