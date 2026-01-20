@@ -388,7 +388,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       if (_mapController != null) {
 
-
+        print('[MyHomePage] 🎯 Centering map on user location...');
 
         _mapController?.animateCamera(
 
@@ -406,7 +406,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
-              zoom: 14.0,
+              zoom: 15.0,
 
 
 
@@ -419,6 +419,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
         );
+
+        print('[MyHomePage] ✅ Map centered on user location');
+      } else {
+        print('[MyHomePage] ⚠️ Map controller not ready yet, will center when map loads');
+      }
 
 
 
