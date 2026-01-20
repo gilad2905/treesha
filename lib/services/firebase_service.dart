@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -43,20 +44,20 @@ class FirebaseService {
     required Position position,
     XFile? image,
   }) async {
-    print('[FirebaseService] Starting addTree - userId: $userId, name: $name, fruitType: $fruitType');
-    print('[FirebaseService] Position: lat=${position.latitude}, lng=${position.longitude}');
+    debugPrint('[FirebaseService] Starting addTree - userId: $userId, name: $name, fruitType: $fruitType');
+    debugPrint('[FirebaseService] Position: lat=${position.latitude}, lng=${position.longitude}');
 
     try {
       String? imageUrl;
       if (image != null) {
-        print('[FirebaseService] Image provided, starting upload: ${image.name}');
+        debugPrint('[FirebaseService] Image provided, starting upload: ${image.name}');
         final uploadStart = DateTime.now();
 
         try {
           imageUrl = await _uploadImage(image).timeout(
             const Duration(seconds: 30),
             onTimeout: () {
-              print('[FirebaseService] ERROR: Image upload timed out after 30 seconds');
+              debugPrint('[FirebaseService] ERROR: Image upload timed out after 30 seconds');
               throw FirebaseException(
                 plugin: "firebase_storage",
                 code: "timeout",
@@ -66,14 +67,14 @@ class FirebaseService {
           );
 
           final uploadDuration = DateTime.now().difference(uploadStart);
-          print('[FirebaseService] Image upload completed in ${uploadDuration.inSeconds}s, URL: $imageUrl');
+          debugPrint('[FirebaseService] Image upload completed in ${uploadDuration.inSeconds}s, URL: $imageUrl');
         } catch (e) {
-          print('[FirebaseService] ERROR: Image upload failed: $e');
+          debugPrint('[FirebaseService] ERROR: Image upload failed: $e');
           // Re-throw to fail the entire operation
           rethrow;
         }
       } else {
-        print('[FirebaseService] No image provided, proceeding without image');
+        debugPrint('[FirebaseService] No image provided, proceeding without image');
       }
 
       // Create timestamp explicitly
@@ -91,34 +92,34 @@ class FirebaseService {
         'downvotes': [],
       };
 
-      print('[FirebaseService] Using explicit timestamp: $timestamp');
+      debugPrint('[FirebaseService] Using explicit timestamp: $timestamp');
 
-      print('[FirebaseService] Payload prepared, adding to Firestore: $payload');
+      debugPrint('[FirebaseService] Payload prepared, adding to Firestore: $payload');
       final firestoreStart = DateTime.now();
 
       // Check Firestore settings
-      print('[FirebaseService] Firestore settings: persistenceEnabled=${_firestore.settings.persistenceEnabled}');
+      debugPrint('[FirebaseService] Firestore settings: persistenceEnabled=${_firestore.settings.persistenceEnabled}');
 
-      print('[FirebaseService] ======================================');
-      print('[FirebaseService] DEBUGGING FIRESTORE ADD OPERATION');
-      print('[FirebaseService] ======================================');
-      print('[FirebaseService] Step 1: Checking Firestore instance...');
-      print('[FirebaseService]   Instance: ${_firestore.runtimeType}');
-      print('[FirebaseService]   App: ${_firestore.app.name}');
-      print('[FirebaseService]   Settings: ${_firestore.settings}');
+      debugPrint('[FirebaseService] ======================================');
+      debugPrint('[FirebaseService] DEBUGGING FIRESTORE ADD OPERATION');
+      debugPrint('[FirebaseService] ======================================');
+      debugPrint('[FirebaseService] Step 1: Checking Firestore instance...');
+      debugPrint('[FirebaseService]   Instance: ${_firestore.runtimeType}');
+      debugPrint('[FirebaseService]   App: ${_firestore.app.name}');
+      debugPrint('[FirebaseService]   Settings: ${_firestore.settings}');
 
-      print('[FirebaseService] Step 2: Getting collection reference...');
+      debugPrint('[FirebaseService] Step 2: Getting collection reference...');
       final collectionRef = _firestore.collection('trees');
-      print('[FirebaseService]   Collection path: ${collectionRef.path}');
-      print('[FirebaseService]   Collection ID: ${collectionRef.id}');
+      debugPrint('[FirebaseService]   Collection path: ${collectionRef.path}');
+      debugPrint('[FirebaseService]   Collection ID: ${collectionRef.id}');
 
-      print('[FirebaseService] Step 3: Testing with MINIMAL payload first...');
-      print('[FirebaseService]   NOTE: If this hangs, check Firebase Console:');
-      print('[FirebaseService]   Authentication > Settings > Authorized domains');
-      print('[FirebaseService]   Make sure "localhost" is listed!');
+      debugPrint('[FirebaseService] Step 3: Testing with MINIMAL payload first...');
+      debugPrint('[FirebaseService]   NOTE: If this hangs, check Firebase Console:');
+      debugPrint('[FirebaseService]   Authentication > Settings > Authorized domains');
+      debugPrint('[FirebaseService]   Make sure "localhost" is listed!');
 
       try {
-        print('[FirebaseService]   Testing: Adding {"test": "hello"}...');
+        debugPrint('[FirebaseService]   Testing: Adding {"test": "hello"}...');
 
         // Add with a 10 second timeout for the test
         final testDoc = await collectionRef.add({
@@ -127,34 +128,34 @@ class FirebaseService {
         }).timeout(
           const Duration(seconds: 10),
           onTimeout: () {
-            print('[FirebaseService]   ⏱️ MINIMAL TEST TIMED OUT after 10s');
-            print('[FirebaseService]   ');
-            print('[FirebaseService]   🚨 CRITICAL: Firestore writes are hanging!');
-            print('[FirebaseService]   This is almost certainly because:');
-            print('[FirebaseService]   1. "localhost" is NOT in Firebase Authorized Domains');
-            print('[FirebaseService]   2. Or WebSocket connections are blocked');
-            print('[FirebaseService]   ');
-            print('[FirebaseService]   ✅ FIX: Go to Firebase Console:');
-            print('[FirebaseService]   https://console.firebase.google.com/project/applied-primacy-294221/authentication/settings');
-            print('[FirebaseService]   Add "localhost" to Authorized domains');
+            debugPrint('[FirebaseService]   ⏱️ MINIMAL TEST TIMED OUT after 10s');
+            debugPrint('[FirebaseService]   ');
+            debugPrint('[FirebaseService]   🚨 CRITICAL: Firestore writes are hanging!');
+            debugPrint('[FirebaseService]   This is almost certainly because:');
+            debugPrint('[FirebaseService]   1. "localhost" is NOT in Firebase Authorized Domains');
+            debugPrint('[FirebaseService]   2. Or WebSocket connections are blocked');
+            debugPrint('[FirebaseService]   ');
+            debugPrint('[FirebaseService]   ✅ FIX: Go to Firebase Console:');
+            debugPrint('[FirebaseService]   https://console.firebase.google.com/project/applied-primacy-294221/authentication/settings');
+            debugPrint('[FirebaseService]   Add "localhost" to Authorized domains');
             throw Exception('Firestore write timed out - check authorized domains');
           },
         );
 
-        print('[FirebaseService]   ✅ MINIMAL TEST SUCCESS! ID: ${testDoc.id}');
-        print('[FirebaseService]   This proves Firestore writes work!');
+        debugPrint('[FirebaseService]   ✅ MINIMAL TEST SUCCESS! ID: ${testDoc.id}');
+        debugPrint('[FirebaseService]   This proves Firestore writes work!');
 
         // Delete the test document
         await testDoc.delete();
-        print('[FirebaseService]   Test document deleted');
+        debugPrint('[FirebaseService]   Test document deleted');
       } catch (e) {
-        print('[FirebaseService]   ❌ MINIMAL TEST FAILED: $e');
+        debugPrint('[FirebaseService]   ❌ MINIMAL TEST FAILED: $e');
         rethrow;
       }
 
-      print('[FirebaseService] Step 4: Starting REAL add operation...');
-      print('[FirebaseService]   Payload size: ${payload.toString().length} chars');
-      print('[FirebaseService]   Calling add()...');
+      debugPrint('[FirebaseService] Step 4: Starting REAL add operation...');
+      debugPrint('[FirebaseService]   Payload size: ${payload.toString().length} chars');
+      debugPrint('[FirebaseService]   Calling add()...');
 
       DocumentReference? docRef;
       bool operationStarted = false;
@@ -162,52 +163,52 @@ class FirebaseService {
       try {
         // Mark that we're starting
         operationStarted = true;
-        print('[FirebaseService] Step 5: Awaiting add() response...');
+        debugPrint('[FirebaseService] Step 5: Awaiting add() response...');
 
         // Try the add operation
         docRef = await collectionRef.add(payload);
 
-        print('[FirebaseService] ✅ SUCCESS! Add operation completed');
-        print('[FirebaseService]   Document ID: ${docRef.id}');
+        debugPrint('[FirebaseService] ✅ SUCCESS! Add operation completed');
+        debugPrint('[FirebaseService]   Document ID: ${docRef.id}');
       } on FirebaseException catch (e) {
-        print('[FirebaseService] ========================================');
-        print('[FirebaseService] ❌ ERROR: FirebaseException during add');
-        print('[FirebaseService] Code: ${e.code}');
-        print('[FirebaseService] Message: ${e.message}');
-        print('[FirebaseService] Plugin: ${e.plugin}');
-        print('[FirebaseService] ========================================');
+        debugPrint('[FirebaseService] ========================================');
+        debugPrint('[FirebaseService] ❌ ERROR: FirebaseException during add');
+        debugPrint('[FirebaseService] Code: ${e.code}');
+        debugPrint('[FirebaseService] Message: ${e.message}');
+        debugPrint('[FirebaseService] Plugin: ${e.plugin}');
+        debugPrint('[FirebaseService] ========================================');
 
         if (e.code == 'permission-denied') {
-          print('[FirebaseService] PERMISSION DENIED');
-          print('[FirebaseService] Your rules expire 2026-02-18, so this should work!');
-          print('[FirebaseService] Try updating rules in Firebase Console');
+          debugPrint('[FirebaseService] PERMISSION DENIED');
+          debugPrint('[FirebaseService] Your rules expire 2026-02-18, so this should work!');
+          debugPrint('[FirebaseService] Try updating rules in Firebase Console');
         } else if (e.code == 'unavailable') {
-          print('[FirebaseService] UNAVAILABLE - Cannot reach Firebase');
+          debugPrint('[FirebaseService] UNAVAILABLE - Cannot reach Firebase');
         } else if (e.code == 'unauthenticated') {
-          print('[FirebaseService] UNAUTHENTICATED - User not logged in');
+          debugPrint('[FirebaseService] UNAUTHENTICATED - User not logged in');
         }
         rethrow;
       } catch (e, stackTrace) {
-        print('[FirebaseService] ========================================');
-        print('[FirebaseService] ❌ UNEXPECTED ERROR: ${e.runtimeType}');
-        print('[FirebaseService] Error: $e');
-        print('[FirebaseService] Stack: $stackTrace');
-        print('[FirebaseService] ========================================');
+        debugPrint('[FirebaseService] ========================================');
+        debugPrint('[FirebaseService] ❌ UNEXPECTED ERROR: ${e.runtimeType}');
+        debugPrint('[FirebaseService] Error: $e');
+        debugPrint('[FirebaseService] Stack: $stackTrace');
+        debugPrint('[FirebaseService] ========================================');
         rethrow;
       }
 
-      print('[FirebaseService] Document added with ID: ${docRef.id}');
+      debugPrint('[FirebaseService] Document added with ID: ${docRef.id}');
 
       final firestoreDuration = DateTime.now().difference(firestoreStart);
-      print('[FirebaseService] SUCCESS: Tree added to Firestore in ${firestoreDuration.inSeconds}s');
+      debugPrint('[FirebaseService] SUCCESS: Tree added to Firestore in ${firestoreDuration.inSeconds}s');
       return true; // Tree added successfully
     } on FirebaseException catch (e) {
-      print('[FirebaseService] ERROR: FirebaseException - plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}');
+      debugPrint('[FirebaseService] ERROR: FirebaseException - plugin: ${e.plugin}, code: ${e.code}, message: ${e.message}');
       throw e; // Re-throw Firebase exceptions
     } catch (e, stackTrace) {
       // Catch any other unexpected errors and wrap them in a FirebaseException
-      print('[FirebaseService] ERROR: Unexpected error while adding tree: $e');
-      print('[FirebaseService] Stack trace: $stackTrace');
+      debugPrint('[FirebaseService] ERROR: Unexpected error while adding tree: $e');
+      debugPrint('[FirebaseService] Stack trace: $stackTrace');
       throw FirebaseException(
         plugin: "firebase_firestore",
         code: "unknown",

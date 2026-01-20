@@ -1,3 +1,7 @@
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
 
@@ -171,6 +175,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     Set<Marker> _markers = {}; // Changed type from AdvancedMarkerElement
+    Set<Circle> _circles = {}; // Circles for user location
+    BitmapDescriptor? _userMarkerIcon; // Custom user marker icon from asset
 
 
 
@@ -205,6 +211,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
 
+  /// Load blue marker icon from Google Maps CDN
+  Future<void> _loadUserMarkerIcon() async {
+    try {
+      // Download the blue pin from Google Maps
+      final response = await http.get(
+        Uri.parse('http://maps.google.com/mapfiles/ms/icons/blue-dot.png'),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to download marker image');
+      }
+
+      // Use the marker directly
+      final Uint8List markerBytes = response.bodyBytes;
+
+      if (!mounted) return;
+      setState(() {
+        _userMarkerIcon = BitmapDescriptor.fromBytes(markerBytes);
+      });
+
+      // Update markers to include user location with new icon
+      _updateMarkers();
+    } catch (e) {
+      debugPrint('[MyHomePage] Error loading blue marker icon: $e');
+      // Fallback to default marker if creation fails
+      if (!mounted) return;
+      setState(() {
+        _userMarkerIcon = BitmapDescriptor.defaultMarker;
+      });
+      _updateMarkers();
+    }
+  }
+
   @override
 
 
@@ -218,8 +257,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _treeRepository = TreeRepository();
     _treeRepositoryRest = TreeRepositoryNoConfirm(); // REST API fallback
 
-    print('[MyHomePage] Firebase services initialized (including REST fallback)');
 
+    _loadUserMarkerIcon(); // Load user marker icon from asset
     _determinePosition();
     _loadTrees(); // Load trees using REST API
     _authService.user.listen((user) {
@@ -239,10 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
 
     try {
-      print('[MyHomePage] Loading trees via REST API...');
       final treesData = await _treeRepositoryRest.getAllTrees();
-
-      print('[MyHomePage] Loaded ${treesData.length} trees');
 
       // Convert Map data to Tree objects
       final trees = treesData.map((data) {
@@ -277,11 +313,8 @@ class _MyHomePageState extends State<MyHomePage> {
         _trees = filteredTrees;
         _updateMarkers();
       });
-
-      print('[MyHomePage] ✅ Loaded ${filteredTrees.length} trees (filtered)');
     } catch (e, stack) {
-      print('[MyHomePage] ❌ Error loading trees: $e');
-      print('[MyHomePage] Stack: $stack');
+      debugPrint('[MyHomePage] Error loading trees: $e\n$stack');
     } finally {
       if (!mounted) return;
       setState(() {
@@ -293,8 +326,6 @@ class _MyHomePageState extends State<MyHomePage> {
   /// Update map markers from current tree list
   void _updateMarkers() {
     final newMarkers = <Marker>{};
-
-    print('[MyHomePage] Updating markers...');
 
     // Add tree markers
     for (var tree in _trees) {
@@ -315,38 +346,24 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    print('[MyHomePage] Added ${_trees.length} tree markers');
-
-    // Add user location marker (for web support)
+    // Add user location marker with custom icon from asset
     if (_currentPosition != null) {
-      print('[MyHomePage] Adding user location marker at: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
-      newMarkers.add(
-        Marker(
-          markerId: const MarkerId('user_location'),
-          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
-          infoWindow: const InfoWindow(
-            title: '📍 Your Location',
-            snippet: 'Tap to center map here',
+      if (_userMarkerIcon != null) {
+        newMarkers.add(
+          Marker(
+            markerId: const MarkerId('user_location'),
+            position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            icon: _userMarkerIcon!,
+            anchor: const Offset(0.5, 0.5), // Center the icon on the position
+            infoWindow: const InfoWindow(
+              title: '📍 Your Location',
+            ),
           ),
-          zIndex: 1000, // Show on top of other markers
-          onTap: () {
-            // Center map on user location when tapped
-            _mapController?.animateCamera(
-              CameraUpdate.newLatLng(
-                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-              ),
-            );
-          },
-        ),
-      );
-      print('[MyHomePage] User location marker added successfully');
-    } else {
-      print('[MyHomePage] No current position available, skipping user location marker');
+        );
+      }
     }
 
     _markers = newMarkers;
-    print('[MyHomePage] Total markers on map: ${_markers.length}');
   }
 
 
@@ -356,82 +373,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   Future<void> _determinePosition() async {
-
-    print('[MyHomePage] Starting location determination...');
-
     try {
-
-
-
       Position position = await _firebaseService.getCurrentLocation();
-
-      print('[MyHomePage] ✅ Location received: ${position.latitude}, ${position.longitude}');
-      print('[MyHomePage] Accuracy: ${position.accuracy}m');
 
       if (!mounted) return; // Add mounted check
       setState(() {
-
-
-
         _currentPosition = position;
         _updateMarkers(); // Update markers to include user location
-
-        print('[MyHomePage] ✅ User location marker added to map');
-
       });
 
 
 
       // If map controller is already available, animate camera to current position
-
-
-
       if (_mapController != null) {
-
-        print('[MyHomePage] 🎯 Centering map on user location...');
-
         _mapController?.animateCamera(
-
-
-
           CameraUpdate.newCameraPosition(
-
-
-
             CameraPosition(
-
-
-
               target: LatLng(position.latitude, position.longitude),
-
-
-
               zoom: 15.0,
-
-
-
             ),
-
-
-
           ),
-
-
-
         );
-
-        print('[MyHomePage] ✅ Map centered on user location');
-      } else {
-        print('[MyHomePage] ⚠️ Map controller not ready yet, will center when map loads');
       }
-
-
-
     } catch (e) {
-
-      print('[MyHomePage] ❌ Error determining position: $e');
-      print('[MyHomePage] Location may not be available or permission denied');
-
+      debugPrint('[MyHomePage] Error determining position: $e');
     }
 
 
@@ -445,17 +410,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
   void _onMapCreated(GoogleMapController controller) {
-
-    print('[MyHomePage] 🗺️ Map created and controller ready');
-
     _mapController = controller;
 
-
-
     // If _currentPosition was already determined before map created, animate camera again.
-
-
-
     // This handles cases where _determinePosition finishes before _onMapCreated.
 
 
@@ -463,42 +420,14 @@ class _MyHomePageState extends State<MyHomePage> {
     final currentPosition = _currentPosition; // Local non-nullable variable
     // ignore: unnecessary_null_comparison
     if (currentPosition != null) {
-
-      print('[MyHomePage] 🎯 User position already known, centering map on: ${currentPosition.latitude}, ${currentPosition.longitude}');
-
       _mapController?.animateCamera(
-
-
-
         CameraUpdate.newCameraPosition(
-
-
-
           CameraPosition(
-
-
-
             target: LatLng(currentPosition.latitude, currentPosition.longitude),
-
-
-
             zoom: 14.0,
-
-
-
           ),
-
-
-
         ),
-
-
-
       );
-
-      print('[MyHomePage] ✅ Map should now be centered on user location');
-    } else {
-      print('[MyHomePage] ℹ️ User position not yet determined, map will stay at initial position');
     }
 
 
@@ -580,7 +509,6 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.bug_report),
             tooltip: 'Run Firebase Diagnostic',
             onPressed: () async {
-              print('[Main] Running Firebase diagnostic...');
               await FirestoreDiagnostic.runFullDiagnostic();
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -760,8 +688,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
                                                 markers: _markers,
 
-
-
                                                 myLocationEnabled: true,
 
 
@@ -866,9 +792,6 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (context) {
         return AddTreeDialog(
           onAdd: (name, fruitType, image) async {
-            print('[Main] ========================================');
-            print('[Main] ADD TREE REQUEST');
-            print('[Main] ========================================');
 
             // Set saving state to disable map interactions
             if (mounted) {
@@ -881,7 +804,6 @@ class _MyHomePageState extends State<MyHomePage> {
               // Upload image first if provided
               String? imageUrl;
               if (image != null) {
-                print('[Main] Uploading image...');
                 try {
                   imageUrl = await _firebaseService.uploadImage(image).timeout(
                     const Duration(seconds: 30),
@@ -889,9 +811,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       throw Exception('Image upload timed out after 30 seconds');
                     },
                   );
-                  print('[Main] ✅ Image uploaded successfully: $imageUrl');
                 } catch (e) {
-                  print('[Main] ❌ Image upload failed: $e');
+                  debugPrint('[Main] Image upload failed: $e');
                   // Continue with tree creation without image
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -907,7 +828,6 @@ class _MyHomePageState extends State<MyHomePage> {
               }
 
               // Add tree using REST API (bypasses SDK WebSocket issues)
-              print('[Main] Adding tree via REST API...');
               final docId = await _treeRepositoryRest.addTree(
                 userId: _user!.uid,
                 name: name,
@@ -915,8 +835,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 position: position,
                 imageUrl: imageUrl,
               );
-
-              print('[Main] ✅ Tree added successfully via REST! ID: $docId');
 
               // Reload trees to show the new tree on map
               _loadTrees();
@@ -931,7 +849,7 @@ class _MyHomePageState extends State<MyHomePage> {
               }
               return true;
             } on TreeRepositoryException catch (e) {
-              print('[Main] ❌ TreeRepositoryException: ${e.code} - ${e.message}');
+              debugPrint('[Main] TreeRepositoryException: ${e.code} - ${e.message}');
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -944,8 +862,7 @@ class _MyHomePageState extends State<MyHomePage> {
               }
               return false;
             } catch (e, stackTrace) {
-              print('[Main] ❌ Unexpected error: $e');
-              print('[Main] Stack: $stackTrace');
+              debugPrint('[Main] Unexpected error: $e\n$stackTrace');
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -964,9 +881,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   _isSavingTree = false;
                 });
               }
-              print('[Main] ========================================');
-              print('[Main] ADD TREE COMPLETE');
-              print('[Main] ========================================');
             }
           },
         );
@@ -974,7 +888,6 @@ class _MyHomePageState extends State<MyHomePage> {
     ).then((_) {
       if (!mounted) return; // Add mounted check
       _isDialogShowing = false; // Reset flag when dialog is dismissed (e.g., cancelled)
-      print('[Main] Dialog dismissed');
     });
   }
 
@@ -998,7 +911,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _showAddTreeDialog(position);
     } catch (e) {
       // Log error if necessary, but remove print for production
-      print('[Main] ERROR: Failed to get location: $e');
+      debugPrint('[Main] Failed to get location: $e');
     }
   }
 
