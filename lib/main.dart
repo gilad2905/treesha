@@ -446,7 +446,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onMapCreated(GoogleMapController controller) {
 
-
+    print('[MyHomePage] 🗺️ Map created and controller ready');
 
     _mapController = controller;
 
@@ -464,7 +464,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // ignore: unnecessary_null_comparison
     if (currentPosition != null) {
 
-
+      print('[MyHomePage] 🎯 User position already known, centering map on: ${currentPosition.latitude}, ${currentPosition.longitude}');
 
       _mapController?.animateCamera(
 
@@ -495,6 +495,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
       );
+
+      print('[MyHomePage] ✅ Map should now be centered on user location');
+    } else {
+      print('[MyHomePage] ℹ️ User position not yet determined, map will stay at initial position');
+    }
 
 
 
