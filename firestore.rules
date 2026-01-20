@@ -26,8 +26,16 @@ service cloud.firestore {
                     && request.resource.data.upvotes is list
                     && request.resource.data.downvotes is list;
 
-      // Only authenticated users can update trees (for voting)
-      allow update: if isAuthenticated();
+      // Allow updates for voting (upvotes/downvotes) by authenticated users
+      // Prevent modification of core fields (userId, name, fruitType, position, createdAt)
+      // Only allow changes to upvotes/downvotes arrays
+      allow update: if isAuthenticated()
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.fruitType == resource.data.fruitType
+                    && request.resource.data.position == resource.data.position
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.imageUrl == resource.data.imageUrl;
 
       // Only the tree creator can delete their tree
       allow delete: if isOwner(resource.data.userId);
