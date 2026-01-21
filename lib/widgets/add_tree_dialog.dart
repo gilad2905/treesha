@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:treesha/l10n/app_localizations.dart';
@@ -97,7 +98,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
       onWillPop: () async {
         // Prevent back button during loading
         if (_isLoading) {
-          print(
+          debugPrint(
             '[AddTreeDialog] Back button pressed during loading - preventing dismissal',
           );
           ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +249,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
             onPressed: _isLoading
                 ? null
                 : () {
-                    print('[AddTreeDialog] Cancel button pressed');
+                    debugPrint('[AddTreeDialog] Cancel button pressed');
                     Navigator.of(context).pop();
                   },
             child: Text(
@@ -261,15 +262,15 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                 ? null
                 : () async {
                     if (_formKey.currentState!.validate()) {
-                      print('[AddTreeDialog] Form validated, starting save...');
-                      print(
+                      debugPrint('[AddTreeDialog] Form validated, starting save...');
+                      debugPrint(
                         '[AddTreeDialog] Tree name: ${_nameController.text}',
                       );
-                      print(
+                      debugPrint(
                         '[AddTreeDialog] Fruit type: ${_selectedFruitType ?? _fruitTypeController.text}',
                       );
-                      print('[AddTreeDialog] Images: ${_images.length}');
-                      print(
+                      debugPrint('[AddTreeDialog] Images: ${_images.length}');
+                      debugPrint(
                         '[AddTreeDialog] Comment: ${_commentController.text}',
                       );
 
@@ -282,15 +283,15 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                           _commentController.text,
                         );
 
-                        print(
+                        debugPrint(
                           '[AddTreeDialog] onAdd completed with result: $result',
                         );
 
                         if (result && mounted) {
-                          print('[AddTreeDialog] Success, closing dialog');
+                          debugPrint('[AddTreeDialog] Success, closing dialog');
                           Navigator.of(context).pop();
                         } else if (!result && mounted) {
-                          print('[AddTreeDialog] Failed to save tree');
+                          debugPrint('[AddTreeDialog] Failed to save tree');
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -301,8 +302,8 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                           );
                         }
                       } catch (e, stackTrace) {
-                        print('[AddTreeDialog] ERROR: Exception in onAdd: $e');
-                        print('[AddTreeDialog] Stack trace: $stackTrace');
+                        debugPrint('[AddTreeDialog] ERROR: Exception in onAdd: $e');
+                        debugPrint('[AddTreeDialog] Stack trace: $stackTrace');
 
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -315,11 +316,11 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                       } finally {
                         if (mounted) {
                           setState(() => _isLoading = false);
-                          print('[AddTreeDialog] Loading state reset');
+                          debugPrint('[AddTreeDialog] Loading state reset');
                         }
                       }
                     } else {
-                      print('[AddTreeDialog] Form validation failed');
+                      debugPrint('[AddTreeDialog] Form validation failed');
                     }
                   },
             child: _isLoading

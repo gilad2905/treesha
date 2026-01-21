@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -44,43 +45,43 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  print('[Main] ========================================');
-  print('[Main] Treesha App Starting');
-  print('[Main] ========================================');
+  debugPrint('[Main] ========================================');
+  debugPrint('[Main] Treesha App Starting');
+  debugPrint('[Main] ========================================');
 
   try {
     // Initialize Firebase
-    print('[Main] Step 1: Initializing Firebase...');
+    debugPrint('[Main] Step 1: Initializing Firebase...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('[Main] ✅ Firebase initialized');
-    print('[Main]    Project: ${Firebase.app().options.projectId}');
+    debugPrint('[Main] ✅ Firebase initialized');
+    debugPrint('[Main]    Project: ${Firebase.app().options.projectId}');
 
     // Configure Firestore
-    print('[Main] Step 2: Configuring Firestore...');
+    debugPrint('[Main] Step 2: Configuring Firestore...');
     await FirestoreConfig.configure();
-    print('[Main] ✅ Firestore configured');
+    debugPrint('[Main] ✅ Firestore configured');
 
     // Test connectivity (optional but recommended)
-    print('[Main] Step 3: Testing Firestore connectivity...');
+    debugPrint('[Main] Step 3: Testing Firestore connectivity...');
     final connected = await FirestoreConfig.testConnection();
     if (connected) {
-      print('[Main] ✅ Firestore connectivity verified');
+      debugPrint('[Main] ✅ Firestore connectivity verified');
     } else {
-      print('[Main] ⚠️  Firestore connectivity test failed');
-      print('[Main]    App will still start, but writes may fail');
+      debugPrint('[Main] ⚠️  Firestore connectivity test failed');
+      debugPrint('[Main]    App will still start, but writes may fail');
     }
 
-    print('[Main] ========================================');
-    print('[Main] Initialization Complete');
-    print('[Main] ========================================');
+    debugPrint('[Main] ========================================');
+    debugPrint('[Main] Initialization Complete');
+    debugPrint('[Main] ========================================');
   } catch (e, stack) {
-    print('[Main] ========================================');
-    print('[Main] ❌ FATAL ERROR during initialization');
-    print('[Main] Error: $e');
-    print('[Main] Stack: $stack');
-    print('[Main] ========================================');
+    debugPrint('[Main] ========================================');
+    debugPrint('[Main] ❌ FATAL ERROR during initialization');
+    debugPrint('[Main] Error: $e');
+    debugPrint('[Main] Stack: $stack');
+    debugPrint('[Main] ========================================');
     // Still run the app, but it will likely fail
   }
 
@@ -146,7 +147,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Set<Marker> _markers = {}; // Changed type from AdvancedMarkerElement
   Set<Circle> _circles = {}; // Circles for user location
-  BitmapDescriptor? _userMarkerIcon; // Custom user marker icon from asset
 
   Position? _currentPosition;
 
@@ -157,38 +157,6 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Tree> _trees = []; // Store trees loaded from REST API
   bool _isLoadingTrees = false; // Track if trees are being loaded
 
-  /// Load blue marker icon from Google Maps CDN
-  Future<void> _loadUserMarkerIcon() async {
-    try {
-      // Download the blue pin from Google Maps
-      final response = await http.get(
-        Uri.parse('http://maps.google.com/mapfiles/ms/icons/blue-dot.png'),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to download marker image');
-      }
-
-      // Use the marker directly
-      final Uint8List markerBytes = response.bodyBytes;
-
-      if (!mounted) return;
-      setState(() {
-        _userMarkerIcon = BitmapDescriptor.fromBytes(markerBytes);
-      });
-
-      // Update markers to include user location with new icon
-      _updateMarkers();
-    } catch (e) {
-      debugPrint('[MyHomePage] Error loading blue marker icon: $e');
-      // Fallback to default marker if creation fails
-      if (!mounted) return;
-      setState(() {
-        _userMarkerIcon = BitmapDescriptor.defaultMarker;
-      });
-      _updateMarkers();
-    }
-  }
 
   @override
   void initState() {
@@ -200,7 +168,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _treeRepository = TreeRepository();
     _treeRepositoryRest = TreeRepositoryNoConfirm(); // REST API fallback
 
-    _loadUserMarkerIcon(); // Load user marker icon from asset
     _determinePosition();
     _loadTrees(); // Load trees using REST API
     _authService.user.listen((user) {
@@ -336,23 +303,8 @@ class _MyHomePageState extends State<MyHomePage> {
       );
     }
 
-    // Add user location marker with custom icon from asset
-    if (_currentPosition != null) {
-      if (_userMarkerIcon != null) {
-        newMarkers.add(
-          Marker(
-            markerId: const MarkerId('user_location'),
-            position: LatLng(
-              _currentPosition!.latitude,
-              _currentPosition!.longitude,
-            ),
-            icon: _userMarkerIcon!,
-            anchor: const Offset(0.5, 0.5), // Center the icon on the position
-            infoWindow: const InfoWindow(title: '📍 Your Location'),
-          ),
-        );
-      }
-    }
+    // No need to add custom user location marker - Google Maps shows it automatically
+    // with myLocationEnabled: true
 
     _markers = newMarkers;
   }
@@ -505,70 +457,37 @@ class _MyHomePageState extends State<MyHomePage> {
 
       body: _isLoadingTrees
           ? const Center(child: CircularProgressIndicator())
-          : GestureDetector(
-              onDoubleTapDown: (details) async {
-                if (_mapController != null) {
-                  final latLng = await _mapController!.getLatLng(
-                    ScreenCoordinate(
-                      x: details.globalPosition.dx.toInt(),
+          : GoogleMap(
+              onMapCreated: _onMapCreated,
 
-                      y: details.globalPosition.dy.toInt(),
-                    ),
-                  );
+              initialCameraPosition: CameraPosition(
+                // ignore: unnecessary_null_comparison
+                target: currentPosition != null
+                    ? LatLng(
+                        currentPosition.latitude,
+                        currentPosition.longitude,
+                      )
+                    : const LatLng(0, 0),
 
-                  if (latLng != null) {
-                    _onMapTapped(latLng);
-                  }
-                }
-              },
-
-              onLongPressStart: (details) async {
-                if (_mapController != null) {
-                  final latLng = await _mapController!.getLatLng(
-                    ScreenCoordinate(
-                      x: details.globalPosition.dx.toInt(),
-
-                      y: details.globalPosition.dy.toInt(),
-                    ),
-                  );
-
-                  if (latLng != null) {
-                    _onMapTapped(latLng);
-                  }
-                }
-              },
-
-              child: GoogleMap(
-                onMapCreated: _onMapCreated,
-
-                initialCameraPosition: CameraPosition(
-                  // ignore: unnecessary_null_comparison
-                  target: currentPosition != null
-                      ? LatLng(
-                          currentPosition.latitude,
-                          currentPosition.longitude,
-                        )
-                      : const LatLng(0, 0),
-
-                  zoom: 14.0,
-                ),
-
-                markers: _markers,
-
-                mapType: MapType.satellite,
-
-                myLocationEnabled: true,
-
-                myLocationButtonEnabled: true,
-
-                // Disable all gestures when saving tree
-                scrollGesturesEnabled: !_isSavingTree,
-                zoomGesturesEnabled: !_isSavingTree,
-                rotateGesturesEnabled: !_isSavingTree,
-                tiltGesturesEnabled: !_isSavingTree,
-
-                // onTap: _onMapTapped, // Removed
+                zoom: 14.0,
               ),
+
+              markers: _markers,
+
+              mapType: MapType.satellite,
+
+              myLocationEnabled: true,
+
+              myLocationButtonEnabled: true,
+
+              // Disable all gestures when saving tree
+              scrollGesturesEnabled: !_isSavingTree,
+              zoomGesturesEnabled: !_isSavingTree,
+              rotateGesturesEnabled: !_isSavingTree,
+              tiltGesturesEnabled: !_isSavingTree,
+
+              // Use native onLongPress for accurate coordinates
+              onLongPress: _onMapTapped,
             ),
 
       floatingActionButton: FloatingActionButton(
@@ -617,6 +536,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _onMapTapped(LatLng latLng) {
     if (!mounted) return; // Add mounted check
+
+    debugPrint('[MapTap] Tapped at: ${latLng.latitude}, ${latLng.longitude}');
 
     final l10n = AppLocalizations.of(context)!;
 
@@ -700,6 +621,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // Add tree using REST API (bypasses SDK WebSocket issues)
               // Use first image as main tree image for backward compatibility
+              debugPrint('[AddTree] Creating tree at: ${position.latitude}, ${position.longitude}');
               final docId = await _treeRepositoryRest.addTree(
                 userId: _user!.uid,
                 name: name,

@@ -12,7 +12,20 @@
           "package_name": "com.example.treesha"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "859938357630-mhafn18hmjm681klv3e1lcr8j0vjifvn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.treesha",
+            "certificate_hash": "d69f90eeab0d83049f74855e4ac1aedcf988e7c6"
+          }
+        },
+        {
+          "client_id": "859938357630-9adn9ql6cn1toefs0ilqdm7ell3d3l1s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBYEDJjk_-lA473yrbvYU0Ay595EhUnlGo"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "859938357630-9adn9ql6cn1toefs0ilqdm7ell3d3l1s.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "859938357630-7nge2n09jkqvp3vh41k0qf7g1rfdgfnb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.treesha"
+              }
+            }
+          ]
         }
       }
     }

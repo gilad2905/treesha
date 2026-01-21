@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,6 +43,11 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     _upvotes = List.from(widget.tree.upvotes);
     _downvotes = List.from(widget.tree.downvotes);
 
+    // Debug: Check lastVerifiedAt
+    debugPrint('[TreeDetailScreen] Tree: ${widget.tree.name}');
+    debugPrint('[TreeDetailScreen] lastVerifiedAt: ${widget.tree.lastVerifiedAt}');
+    debugPrint('[TreeDetailScreen] upvotes: ${widget.tree.upvotes.length}');
+
     _authService.user.listen((user) {
       if (mounted) {
         setState(() {
@@ -54,17 +61,19 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   Future<void> _loadPosts() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingPosts = true;
     });
 
     try {
       final postsData = await _treeRepository.getTreePosts(widget.tree.id);
+      if (!mounted) return;
+
       final posts = postsData.map((data) {
         return TreePost.fromRestApi(data, data['id'] as String);
       }).toList();
 
-      // Sort by creation date (newest first)
       posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       if (mounted) {
@@ -88,23 +97,19 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     final lat = widget.tree.position.latitude;
     final lng = widget.tree.position.longitude;
 
-    // Google Maps URL for directions
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
-    );
+    final url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
 
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error opening maps: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening maps: $e')));
     }
   }
 
   Future<void> _showAddPostDialog() async {
     if (_user == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You need to be logged in to add photos or comments'),
@@ -114,167 +119,51 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       return;
     }
 
-    final commentController = TextEditingController();
-    List<XFile> selectedImages = [];
-
-    await showDialog(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Add Photos/Comment'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Comment field
-                    TextField(
-                      controller: commentController,
-                      decoration: const InputDecoration(
-                        labelText: 'Comment (optional)',
-                        hintText: 'Add a comment...',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    // Photos section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Photos (${selectedImages.length})',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        TextButton.icon(
-                          onPressed: () async {
-                            final images = await ImagePicker().pickMultiImage();
-                            if (images.isNotEmpty) {
-                              setDialogState(() {
-                                selectedImages.addAll(images);
-                              });
-                            }
-                          },
-                          icon: const Icon(Icons.add_photo_alternate),
-                          label: const Text('Add Photos'),
-                        ),
-                      ],
-                    ),
-                    if (selectedImages.isNotEmpty)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: selectedImages.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final image = entry.value;
-                          return Stack(
-                            children: [
-                              Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    image.path,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(Icons.image, size: 50);
-                                    },
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 4,
-                                top: -4,
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.cancel,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () {
-                                    setDialogState(() {
-                                      selectedImages.removeAt(index);
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed:
-                      (selectedImages.isEmpty &&
-                          commentController.text.trim().isEmpty)
-                      ? null
-                      : () {
-                          Navigator.of(context).pop({
-                            'images': selectedImages,
-                            'comment': commentController.text.trim(),
-                          });
-                        },
-                  child: const Text('Post'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).then((result) async {
-      if (result != null && result is Map<String, dynamic>) {
-        await _addPost(
-          result['images'] as List<XFile>,
-          result['comment'] as String,
-        );
-      }
-    });
+      barrierDismissible: false,
+      builder: (context) => _AddPostDialog(),
+    );
+
+    if (result != null) {
+      await _addPost(
+        result['images'] as List<XFile>,
+        result['comment'] as String,
+      );
+    }
   }
 
   Future<void> _addPost(List<XFile> images, String comment) async {
+    if (!mounted) return;
     setState(() {
       _isAddingPost = true;
     });
 
     try {
-      // Upload images
       List<String> imageUrls = [];
       for (var image in images) {
         final url = await _firebaseService.uploadImage(image);
+        if (!mounted) return;
         imageUrls.add(url);
       }
 
-      // Add post to tree
       await _treeRepository.addPostToTree(widget.tree.id, {
         'userId': _user!.uid,
         'userName': _user!.displayName ?? 'Anonymous',
         'imageUrls': imageUrls,
         'comment': comment,
       });
+      if (!mounted) return;
 
-      // Reload posts
       await _loadPosts();
+      if (!mounted) return;
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post added successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post added successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       debugPrint('[TreeDetailScreen] Error adding post: $e');
       if (mounted) {
@@ -588,6 +477,66 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     return '$date $time';
   }
 
+  /// Show full-screen image viewer
+  void _showFullScreenImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            // Full-screen image with zoom capabilities
+            Center(
+              child: InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: Colors.white54,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Close button
+            Positioned(
+              top: 40,
+              right: 16,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 32,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPostCard(TreePost post) {
     return Card(
       elevation: 2,
@@ -638,30 +587,33 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             if (post.imageUrls.isNotEmpty) ...[
               const SizedBox(height: 12),
               post.imageUrls.length == 1
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        post.imageUrls[0],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 200,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 50),
-                          );
-                        },
+                  ? GestureDetector(
+                      onTap: () => _showFullScreenImage(context, post.imageUrls[0]),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          post.imageUrls[0],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.broken_image, size: 50),
+                            );
+                          },
+                        ),
                       ),
                     )
                   : SizedBox(
@@ -672,16 +624,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         itemBuilder: (context, index) {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                post.imageUrls[index],
-                                fit: BoxFit.cover,
-                                width: 200,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Container(
+                            child: GestureDetector(
+                              onTap: () => _showFullScreenImage(context, post.imageUrls[index]),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  post.imageUrls[index],
+                                  fit: BoxFit.cover,
+                                  width: 200,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null) return child;
+                                        return Container(
                                         width: 200,
                                         color: Colors.grey[300],
                                         child: const Center(
@@ -699,6 +653,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                     ),
                                   );
                                 },
+                                ),
                               ),
                             ),
                           );
@@ -709,6 +664,141 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Simplified dialog widget for adding posts
+class _AddPostDialog extends StatefulWidget {
+  @override
+  State<_AddPostDialog> createState() => _AddPostDialogState();
+}
+
+class _AddPostDialogState extends State<_AddPostDialog> {
+  final _commentController = TextEditingController();
+  final List<XFile> _selectedImages = [];
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  bool get _canPost => _selectedImages.isNotEmpty || _commentController.text.trim().isNotEmpty;
+
+  Future<void> _pickImages() async {
+    final images = await ImagePicker().pickMultiImage();
+    if (images.isNotEmpty) {
+      setState(() => _selectedImages.addAll(images));
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() => _selectedImages.removeAt(index));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Photos/Comment'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _commentController,
+              decoration: const InputDecoration(
+                labelText: 'Comment (optional)',
+                hintText: 'Add a comment...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Photos (${_selectedImages.length})',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                TextButton.icon(
+                  onPressed: _pickImages,
+                  icon: const Icon(Icons.add_photo_alternate),
+                  label: const Text('Add Photos'),
+                ),
+              ],
+            ),
+            if (_selectedImages.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _selectedImages.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final image = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: FutureBuilder<Uint8List>(
+                            future: image.readAsBytes(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Image.memory(
+                                  snapshot.data!,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: -4,
+                        top: -4,
+                        child: IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.red),
+                          onPressed: () => _removeImage(index),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _canPost
+              ? () => Navigator.of(context).pop({
+                    'images': _selectedImages,
+                    'comment': _commentController.text.trim(),
+                  })
+              : null,
+          child: const Text('Post'),
+        ),
+      ],
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// TreeRepository that uses Firebase SDK with the custom "treesha" database
@@ -18,9 +19,9 @@ class TreeRepositoryNoConfirm {
     String? imageUrl,
     Map<String, dynamic>? initialPost, // Optional initial post data
   }) async {
-    print('[TreeRepo-SDK] =====================================');
-    print('[TreeRepo-SDK] ADDING TREE VIA SDK');
-    print('[TreeRepo-SDK] =====================================');
+    debugPrint('[TreeRepo-SDK] =====================================');
+    debugPrint('[TreeRepo-SDK] ADDING TREE VIA SDK');
+    debugPrint('[TreeRepo-SDK] =====================================');
 
     try {
       // Create tree document
@@ -35,10 +36,10 @@ class TreeRepositoryNoConfirm {
         'downvotes': [],
       };
 
-      print('[TreeRepo-SDK] Creating tree document...');
+      debugPrint('[TreeRepo-SDK] Creating tree document...');
       final docRef = await _firestore.collection('trees').add(treeData);
       final docId = docRef.id;
-      print('[TreeRepo-SDK] Tree created with ID: $docId');
+      debugPrint('[TreeRepo-SDK] Tree created with ID: $docId');
 
       // If initial post data is provided, add it as a subcollection
       if (initialPost != null) {
@@ -47,40 +48,45 @@ class TreeRepositoryNoConfirm {
 
         if (imageUrls.isNotEmpty || comment.isNotEmpty) {
           try {
-            print('[TreeRepo-SDK] Adding initial post...');
+            debugPrint('[TreeRepo-SDK] Adding initial post...');
             await addPostToTree(docId, initialPost);
-            print('[TreeRepo-SDK] ✅ Initial post added successfully!');
+            debugPrint('[TreeRepo-SDK] ✅ Initial post added successfully!');
           } catch (e) {
-            print('[TreeRepo-SDK] ⚠️  Failed to add initial post: $e');
+            debugPrint('[TreeRepo-SDK] ⚠️  Failed to add initial post: $e');
             // Don't fail the entire operation if post fails
           }
         }
       }
 
-      print('[TreeRepo-SDK] ✅ SUCCESS!');
-      print('[TreeRepo-SDK] =====================================');
+      debugPrint('[TreeRepo-SDK] ✅ SUCCESS!');
+      debugPrint('[TreeRepo-SDK] =====================================');
       return docId;
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Exception: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
-      print('[TreeRepo-SDK] =====================================');
+      debugPrint('[TreeRepo-SDK] ❌ Exception: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] =====================================');
       rethrow;
     }
   }
 
   /// Get all trees from the treesha database
   Future<List<Map<String, dynamic>>> getAllTrees() async {
-    print('[TreeRepo-SDK] Fetching all trees...');
+    debugPrint('[TreeRepo-SDK] Fetching all trees...');
 
     try {
       final snapshot = await _firestore.collection('trees').get();
 
-      print('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} trees');
+      debugPrint('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} trees');
 
       // Convert to simplified format
       return snapshot.docs.map((doc) {
         final data = doc.data();
         final position = data['position'] as GeoPoint;
+
+        // Debug: Check if lastVerifiedAt exists
+        if (data['lastVerifiedAt'] != null) {
+          debugPrint('[TreeRepo-SDK] Tree ${doc.id} has lastVerifiedAt: ${data['lastVerifiedAt']}');
+        }
 
         return {
           'id': doc.id,
@@ -101,8 +107,8 @@ class TreeRepositoryNoConfirm {
         };
       }).toList();
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Error fetching trees: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] ❌ Error fetching trees: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
       return [];
     }
   }
@@ -113,14 +119,14 @@ class TreeRepositoryNoConfirm {
       final doc = await _firestore.collection('trees').doc(docId).get();
       return doc.exists;
     } catch (e) {
-      print('[TreeRepo-SDK] Verification failed: $e');
+      debugPrint('[TreeRepo-SDK] Verification failed: $e');
       return false;
     }
   }
 
   /// Upvote a tree using Firebase SDK
   Future<void> upvoteTree(String treeId, String userId) async {
-    print('[TreeRepo-SDK] Upvoting tree $treeId for user $userId');
+    debugPrint('[TreeRepo-SDK] Upvoting tree $treeId for user $userId');
 
     try {
       final treeRef = _firestore.collection('trees').doc(treeId);
@@ -158,17 +164,17 @@ class TreeRepositoryNoConfirm {
         transaction.update(treeRef, updateData);
       });
 
-      print('[TreeRepo-SDK] ✅ Upvote successful');
+      debugPrint('[TreeRepo-SDK] ✅ Upvote successful');
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Upvote failed: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] ❌ Upvote failed: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }
 
   /// Downvote a tree using Firebase SDK
   Future<void> downvoteTree(String treeId, String userId) async {
-    print('[TreeRepo-SDK] Downvoting tree $treeId for user $userId');
+    debugPrint('[TreeRepo-SDK] Downvoting tree $treeId for user $userId');
 
     try {
       final treeRef = _firestore.collection('trees').doc(treeId);
@@ -197,17 +203,17 @@ class TreeRepositoryNoConfirm {
         });
       });
 
-      print('[TreeRepo-SDK] ✅ Downvote successful');
+      debugPrint('[TreeRepo-SDK] ✅ Downvote successful');
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Downvote failed: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] ❌ Downvote failed: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }
 
   /// Get all posts for a tree
   Future<List<Map<String, dynamic>>> getTreePosts(String treeId) async {
-    print('[TreeRepo-SDK] Fetching posts for tree $treeId...');
+    debugPrint('[TreeRepo-SDK] Fetching posts for tree $treeId...');
 
     try {
       final snapshot = await _firestore
@@ -217,7 +223,7 @@ class TreeRepositoryNoConfirm {
           .orderBy('createdAt', descending: true)
           .get();
 
-      print('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} posts');
+      debugPrint('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} posts');
 
       // Convert to simplified format
       return snapshot.docs.map((doc) {
@@ -234,8 +240,8 @@ class TreeRepositoryNoConfirm {
         };
       }).toList();
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Error fetching posts: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] ❌ Error fetching posts: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
       return [];
     }
   }
@@ -245,7 +251,7 @@ class TreeRepositoryNoConfirm {
     String treeId,
     Map<String, dynamic> postData,
   ) async {
-    print('[TreeRepo-SDK] Adding post to tree $treeId...');
+    debugPrint('[TreeRepo-SDK] Adding post to tree $treeId...');
 
     try {
       final postRef = _firestore
@@ -262,10 +268,10 @@ class TreeRepositoryNoConfirm {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      print('[TreeRepo-SDK] ✅ Post added successfully!');
+      debugPrint('[TreeRepo-SDK] ✅ Post added successfully!');
     } catch (e, stack) {
-      print('[TreeRepo-SDK] ❌ Add post failed: $e');
-      print('[TreeRepo-SDK] Stack: $stack');
+      debugPrint('[TreeRepo-SDK] ❌ Add post failed: $e');
+      debugPrint('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }

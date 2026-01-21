@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 /// Centralized Firestore configuration
 /// This MUST be called before any Firestore operations
@@ -10,18 +11,18 @@ class FirestoreConfig {
   /// Configure Firestore with optimal settings for web
   static Future<void> configure() async {
     if (_isConfigured) {
-      print('[FirestoreConfig] Already configured, skipping');
+      debugPrint('[FirestoreConfig] Already configured, skipping');
       return;
     }
 
-    print('[FirestoreConfig] Starting configuration...');
-    print('[FirestoreConfig] NOTE: Using database "treesha" (not default)');
+    debugPrint('[FirestoreConfig] Starting configuration...');
+    debugPrint('[FirestoreConfig] NOTE: Using database "treesha" (not default)');
 
     // Verify Firebase is initialized
     try {
       final app = Firebase.app();
-      print('[FirestoreConfig] Firebase app: ${app.name}');
-      print('[FirestoreConfig] Project: ${app.options.projectId}');
+      debugPrint('[FirestoreConfig] Firebase app: ${app.name}');
+      debugPrint('[FirestoreConfig] Project: ${app.options.projectId}');
     } catch (e) {
       throw Exception(
         'Firebase not initialized! Call Firebase.initializeApp() first',
@@ -30,7 +31,7 @@ class FirestoreConfig {
 
     // Note: The Flutter SDK doesn't support custom database names easily
     // We're using the REST API which explicitly targets the "treesha" database
-    print('[FirestoreConfig] Using database: treesha (via REST API)');
+    debugPrint('[FirestoreConfig] Using database: treesha (via REST API)');
 
     // Apply Firestore settings
     try {
@@ -39,7 +40,7 @@ class FirestoreConfig {
         webExperimentalForceLongPolling: true,
       );
 
-      print('[FirestoreConfig] Applying settings...');
+      debugPrint('[FirestoreConfig] Applying settings...');
       FirebaseFirestore.instance.settings = settings;
 
       // Verify settings were applied
@@ -47,19 +48,19 @@ class FirestoreConfig {
       final applied = FirebaseFirestore.instance.settings;
       _appliedSettings = applied;
 
-      print('[FirestoreConfig] Settings applied:');
-      print(
+      debugPrint('[FirestoreConfig] Settings applied:');
+      debugPrint(
         '[FirestoreConfig]   - persistenceEnabled: ${applied.persistenceEnabled}',
       );
-      print(
+      debugPrint(
         '[FirestoreConfig]   - webExperimentalForceLongPolling: ${applied.webExperimentalForceLongPolling}',
       );
 
       _isConfigured = true;
-      print('[FirestoreConfig] ✅ Configuration complete');
+      debugPrint('[FirestoreConfig] ✅ Configuration complete');
     } catch (e, stack) {
-      print('[FirestoreConfig] ❌ Configuration failed: $e');
-      print('[FirestoreConfig] Stack: $stack');
+      debugPrint('[FirestoreConfig] ❌ Configuration failed: $e');
+      debugPrint('[FirestoreConfig] Stack: $stack');
       throw Exception('Failed to configure Firestore: $e');
     }
   }
@@ -76,12 +77,12 @@ class FirestoreConfig {
       throw Exception('Firestore not configured! Call configure() first');
     }
 
-    print('[FirestoreConfig] Testing Firestore connectivity...');
-    print('[FirestoreConfig] Note: We use REST API for the "treesha" database');
-    print(
+    debugPrint('[FirestoreConfig] Testing Firestore connectivity...');
+    debugPrint('[FirestoreConfig] Note: We use REST API for the "treesha" database');
+    debugPrint(
       '[FirestoreConfig] Skipping SDK connection test as we use REST API directly',
     );
-    print('[FirestoreConfig] ✅ Configuration verified (REST API mode)');
+    debugPrint('[FirestoreConfig] ✅ Configuration verified (REST API mode)');
     return true;
   }
 

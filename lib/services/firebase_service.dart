@@ -15,7 +15,7 @@ class FirebaseService {
 
   /// Test Firestore connection by attempting a simple read
   Future<void> testFirestoreConnection() async {
-    print('[FirebaseService] Testing Firestore connection...');
+    debugPrint('[FirebaseService] Testing Firestore connection...');
     try {
       final testDoc = await _firestore
           .collection('trees')
@@ -31,11 +31,11 @@ class FirebaseService {
               );
             },
           );
-      print(
+      debugPrint(
         '[FirebaseService] Firestore connection test SUCCESS. Found ${testDoc.docs.length} documents',
       );
     } catch (e) {
-      print('[FirebaseService] Firestore connection test FAILED: $e');
+      debugPrint('[FirebaseService] Firestore connection test FAILED: $e');
       rethrow;
     }
   }
@@ -407,36 +407,36 @@ class FirebaseService {
 
   Future<String?> _uploadImage(XFile image) async {
     try {
-      print('[FirebaseService] _uploadImage: Reading image bytes...');
+      debugPrint('[FirebaseService] _uploadImage: Reading image bytes...');
       final bytes = await image.readAsBytes();
-      print(
+      debugPrint(
         '[FirebaseService] _uploadImage: Image size: ${bytes.length} bytes',
       );
 
       final fileName =
           'trees/${DateTime.now().toIso8601String()}_${image.name}';
       final ref = _storage.ref().child(fileName);
-      print('[FirebaseService] _uploadImage: Storage ref created: $fileName');
+      debugPrint('[FirebaseService] _uploadImage: Storage ref created: $fileName');
 
       final metadata = SettableMetadata(contentType: image.mimeType);
-      print(
+      debugPrint(
         '[FirebaseService] _uploadImage: Starting upload with contentType: ${image.mimeType}',
       );
 
       final uploadTask = await ref.putData(bytes, metadata);
-      print(
+      debugPrint(
         '[FirebaseService] _uploadImage: Upload complete, getting download URL...',
       );
 
       final downloadUrl = await uploadTask.ref.getDownloadURL();
-      print(
+      debugPrint(
         '[FirebaseService] _uploadImage: Download URL obtained: $downloadUrl',
       );
 
       return downloadUrl;
     } catch (e, stackTrace) {
-      print('[FirebaseService] ERROR: _uploadImage failed: $e');
-      print('[FirebaseService] Stack trace: $stackTrace');
+      debugPrint('[FirebaseService] ERROR: _uploadImage failed: $e');
+      debugPrint('[FirebaseService] Stack trace: $stackTrace');
       rethrow; // Re-throw instead of returning null
     }
   }
