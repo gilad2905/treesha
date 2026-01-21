@@ -17,6 +17,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:treesha/l10n/app_localizations.dart';
 
@@ -28,6 +29,7 @@ import 'package:treesha/services/tree_repository.dart';
 import 'package:treesha/services/tree_repository_no_confirm.dart';
 import 'package:treesha/services/raw_firestore_test.dart';
 import 'package:treesha/services/firestore_diagnostic.dart';
+import 'package:treesha/services/version_check_service.dart';
 
 import 'package:treesha/models/tree_model.dart';
 
@@ -168,6 +170,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _treeRepository = TreeRepository();
     _treeRepositoryRest = TreeRepositoryNoConfirm(); // REST API fallback
 
+    // Check app version first
+    _checkAppVersion();
+
     _determinePosition();
     _loadTrees(); // Load trees using REST API
     _authService.user.listen((user) {
@@ -176,6 +181,78 @@ class _MyHomePageState extends State<MyHomePage> {
         _user = user;
       });
     });
+  }
+
+  /// Check if app version meets minimum requirements
+  Future<void> _checkAppVersion() async {
+    try {
+      final versionService = VersionCheckService();
+      final updateInfo = await versionService.checkVersion();
+
+      if (updateInfo != null && updateInfo['needsUpdate'] == true) {
+        if (!mounted) return;
+        _showUpdateDialog(updateInfo);
+      }
+    } catch (e) {
+      debugPrint('[Main] Error checking version: $e');
+      // Continue anyway - fail-open
+    }
+  }
+
+  /// Show update dialog if app version is outdated
+  void _showUpdateDialog(Map<String, dynamic> updateInfo) {
+    final forceUpdate = updateInfo['forceUpdate'] as bool? ?? true;
+    final message = updateInfo['message'] as String;
+
+    showDialog(
+      context: context,
+      barrierDismissible: !forceUpdate,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => !forceUpdate,
+        child: AlertDialog(
+          title: const Text('Update Required'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              Text(
+                'Current version: ${updateInfo['currentVersion']}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                'Minimum version: ${updateInfo['minVersion']}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+          actions: [
+            if (!forceUpdate)
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Later'),
+              ),
+            ElevatedButton(
+              onPressed: () async {
+                // Open app store
+                final url = Uri.parse(
+                  defaultTargetPlatform == TargetPlatform.android
+                      ? 'https://play.google.com/store/apps/details?id=com.example.treesha'
+                      : 'https://apps.apple.com/app/treesha/id123456789',
+                );
+                try {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('[Main] Error opening store: $e');
+                }
+              },
+              child: const Text('Update Now'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Load trees from Firestore using REST API

@@ -13,6 +13,15 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // App configuration (version requirements, etc.)
+    match /app_config/{configId} {
+      // Anyone can read config (needed for version checking)
+      allow read: if true;
+
+      // Only admins can write config (you'll manage this in Firebase Console)
+      allow write: if false;
+    }
+
     // Trees collection rules
     match /trees/{treeId} {
       // Anyone can read trees
