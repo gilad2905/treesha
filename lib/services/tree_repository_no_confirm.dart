@@ -1,17 +1,15 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 
-/// Alternative TreeRepository that uses REST API instead of Firebase SDK
-/// This bypasses the WebSocket/streaming issues
+/// TreeRepository that uses Firebase SDK with the custom "treesha" database
 class TreeRepositoryNoConfirm {
-  static const String projectId = 'applied-primacy-294221';
-  static const String databaseId = 'treesha'; // Custom database name
-  static const String baseUrl = 'https://firestore.googleapis.com/v1';
+  // Use the named "treesha" database instead of the default database
+  FirebaseFirestore get _firestore =>
+      FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'treesha');
 
-  /// Add a tree using REST API
+  /// Add a tree using Firebase SDK
   Future<String> addTree({
     required String userId,
     required String name,
@@ -20,529 +18,224 @@ class TreeRepositoryNoConfirm {
     String? imageUrl,
     Map<String, dynamic>? initialPost, // Optional initial post data
   }) async {
-    print('[TreeRepo-REST] =====================================');
-    print('[TreeRepo-REST] ADDING TREE VIA REST API');
-    print('[TreeRepo-REST] =====================================');
-
-    // Get auth token
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('User not authenticated');
-    }
-
-    final token = await user.getIdToken();
-    if (token == null) {
-      throw Exception('Could not get auth token');
-    }
-
-    // Generate document ID
-    final docId = FirebaseFirestore.instance.collection('trees').doc().id;
-    print('[TreeRepo-REST] Document ID: $docId');
-
-    // Build Firestore REST API request
-    final url = Uri.parse(
-      '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$docId',
-    );
-
-    // Convert data to Firestore format
-    final body = {
-      'fields': {
-        'userId': {'stringValue': userId},
-        'name': {'stringValue': name},
-        'fruitType': {'stringValue': fruitType},
-        'position': {
-          'geoPointValue': {
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-          },
-        },
-        'imageUrl': {'stringValue': imageUrl ?? ''},
-        'createdAt': {
-          'timestampValue': DateTime.now().toUtc().toIso8601String(),
-        },
-        'upvotes': {
-          'arrayValue': {'values': []},
-        },
-        'downvotes': {
-          'arrayValue': {'values': []},
-        },
-      },
-    };
-
-    print('[TreeRepo-REST] Making HTTP request...');
+    print('[TreeRepo-SDK] =====================================');
+    print('[TreeRepo-SDK] ADDING TREE VIA SDK');
+    print('[TreeRepo-SDK] =====================================');
 
     try {
-      final response = await http
-          .patch(
-            url,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              throw Exception('HTTP request timed out');
-            },
-          );
+      // Create tree document
+      final treeData = {
+        'userId': userId,
+        'name': name,
+        'fruitType': fruitType,
+        'position': GeoPoint(position.latitude, position.longitude),
+        'imageUrl': imageUrl ?? '',
+        'createdAt': FieldValue.serverTimestamp(),
+        'upvotes': [],
+        'downvotes': [],
+      };
 
-      print('[TreeRepo-REST] Response status: ${response.statusCode}');
+      print('[TreeRepo-SDK] Creating tree document...');
+      final docRef = await _firestore.collection('trees').add(treeData);
+      final docId = docRef.id;
+      print('[TreeRepo-SDK] Tree created with ID: $docId');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print('[TreeRepo-REST] ✅ Tree created successfully!');
+      // If initial post data is provided, add it as a subcollection
+      if (initialPost != null) {
+        final imageUrls = initialPost['imageUrls'] as List? ?? [];
+        final comment = initialPost['comment'] as String? ?? '';
 
-        // If initial post data is provided, add it as a subcollection
-        if (initialPost != null) {
+        if (imageUrls.isNotEmpty || comment.isNotEmpty) {
           try {
-            await _addPostToTree(docId, initialPost, token);
-            print('[TreeRepo-REST] ✅ Initial post added successfully!');
+            print('[TreeRepo-SDK] Adding initial post...');
+            await addPostToTree(docId, initialPost);
+            print('[TreeRepo-SDK] ✅ Initial post added successfully!');
           } catch (e) {
-            print('[TreeRepo-REST] ⚠️  Failed to add initial post: $e');
+            print('[TreeRepo-SDK] ⚠️  Failed to add initial post: $e');
             // Don't fail the entire operation if post fails
           }
         }
-
-        print('[TreeRepo-REST] =====================================');
-        return docId;
-      } else {
-        print('[TreeRepo-REST] ❌ HTTP error: ${response.statusCode}');
-        print('[TreeRepo-REST] Body: ${response.body}');
-        throw Exception('HTTP ${response.statusCode}: ${response.body}');
       }
+
+      print('[TreeRepo-SDK] ✅ SUCCESS!');
+      print('[TreeRepo-SDK] =====================================');
+      return docId;
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Exception: $e');
-      print('[TreeRepo-REST] Stack: $stack');
-      print('[TreeRepo-REST] =====================================');
+      print('[TreeRepo-SDK] ❌ Exception: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
+      print('[TreeRepo-SDK] =====================================');
       rethrow;
-    }
-  }
-
-  /// Add a post to a tree's posts subcollection
-  Future<void> _addPostToTree(
-    String treeId,
-    Map<String, dynamic> postData,
-    String token,
-  ) async {
-    // Generate post document ID
-    final postId = FirebaseFirestore.instance.collection('posts').doc().id;
-
-    // Build Firestore REST API request for subcollection
-    final url = Uri.parse(
-      '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId/posts/$postId',
-    );
-
-    // Convert post data to Firestore format
-    final body = {
-      'fields': {
-        'userId': {'stringValue': postData['userId']},
-        'userName': {'stringValue': postData['userName']},
-        'imageUrls': {
-          'arrayValue': {
-            'values': (postData['imageUrls'] as List<String>)
-                .map((url) => {'stringValue': url})
-                .toList(),
-          },
-        },
-        'comment': {'stringValue': postData['comment']},
-        'createdAt': {
-          'timestampValue': DateTime.now().toUtc().toIso8601String(),
-        },
-      },
-    };
-
-    final response = await http
-        .patch(
-          url,
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception(
-        'Failed to add post: ${response.statusCode} - ${response.body}',
-      );
     }
   }
 
   /// Get all trees from the treesha database
   Future<List<Map<String, dynamic>>> getAllTrees() async {
-    print('[TreeRepo-REST] Fetching all trees...');
+    print('[TreeRepo-SDK] Fetching all trees...');
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final snapshot = await _firestore.collection('trees').get();
 
-      final url = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees',
-      );
+      print('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} trees');
 
-      // Try with authentication first if user is logged in
-      Map<String, String> headers = {};
-      if (user != null) {
-        final token = await user.getIdToken();
-        if (token != null) {
-          headers['Authorization'] = 'Bearer $token';
-          print('[TreeRepo-REST] Fetching with authentication');
-        }
-      } else {
-        print('[TreeRepo-REST] Fetching without authentication (public read)');
-      }
+      // Convert to simplified format
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        final position = data['position'] as GeoPoint;
 
-      final response = await http
-          .get(url, headers: headers)
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final documents = data['documents'] as List<dynamic>? ?? [];
-
-        print('[TreeRepo-REST] ✅ Fetched ${documents.length} trees');
-
-        // Convert to simplified format
-        return documents.map((doc) {
-          final fields = doc['fields'] as Map<String, dynamic>;
-          final name = doc['name'] as String;
-          final docId = name.split('/').last;
-
-          return {
-            'id': docId,
-            'userId': fields['userId']?['stringValue'] ?? '',
-            'name': fields['name']?['stringValue'] ?? '',
-            'fruitType': fields['fruitType']?['stringValue'] ?? '',
-            'latitude':
-                fields['position']?['geoPointValue']?['latitude'] ?? 0.0,
-            'longitude':
-                fields['position']?['geoPointValue']?['longitude'] ?? 0.0,
-            'imageUrl': fields['imageUrl']?['stringValue'] ?? '',
-            'createdAt': fields['createdAt']?['timestampValue'] ?? '',
-            'lastVerifiedAt': fields['lastVerifiedAt']?['timestampValue'],
-            'upvotes':
-                (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
-                    ?.map((v) => v['stringValue'] as String)
-                    .toList() ??
-                [],
-            'downvotes':
-                (fields['downvotes']?['arrayValue']?['values']
-                        as List<dynamic>?)
-                    ?.map((v) => v['stringValue'] as String)
-                    .toList() ??
-                [],
-          };
-        }).toList();
-      } else {
-        print(
-          '[TreeRepo-REST] ❌ HTTP ${response.statusCode}: ${response.body}',
-        );
-        return [];
-      }
+        return {
+          'id': doc.id,
+          'userId': data['userId'] as String? ?? '',
+          'name': data['name'] as String? ?? '',
+          'fruitType': data['fruitType'] as String? ?? '',
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+          'imageUrl': data['imageUrl'] as String? ?? '',
+          'createdAt':
+              (data['createdAt'] as Timestamp?)?.toDate().toIso8601String() ??
+              '',
+          'lastVerifiedAt': (data['lastVerifiedAt'] as Timestamp?)
+              ?.toDate()
+              .toIso8601String(),
+          'upvotes': List<String>.from(data['upvotes'] ?? []),
+          'downvotes': List<String>.from(data['downvotes'] ?? []),
+        };
+      }).toList();
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Error fetching trees: $e');
-      print('[TreeRepo-REST] Stack: $stack');
+      print('[TreeRepo-SDK] ❌ Error fetching trees: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
       return [];
     }
   }
 
-  /// Verify a tree exists (optional check after adding)
+  /// Verify a tree exists
   Future<bool> verifyTreeExists(String docId) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return false;
-
-      final token = await user.getIdToken();
-      if (token == null) return false;
-
-      final url = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$docId',
-      );
-
-      final response = await http
-          .get(url, headers: {'Authorization': 'Bearer $token'})
-          .timeout(const Duration(seconds: 5));
-
-      return response.statusCode == 200;
+      final doc = await _firestore.collection('trees').doc(docId).get();
+      return doc.exists;
     } catch (e) {
-      print('[TreeRepo-REST] Verification failed: $e');
+      print('[TreeRepo-SDK] Verification failed: $e');
       return false;
     }
   }
 
-  /// Upvote a tree using REST API
+  /// Upvote a tree using Firebase SDK
   Future<void> upvoteTree(String treeId, String userId) async {
-    print('[TreeRepo-REST] Upvoting tree $treeId for user $userId');
+    print('[TreeRepo-SDK] Upvoting tree $treeId for user $userId');
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('User not authenticated');
-      }
+      final treeRef = _firestore.collection('trees').doc(treeId);
 
-      final token = await user.getIdToken();
-      if (token == null) {
-        throw Exception('Could not get auth token');
-      }
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(treeRef);
 
-      // First, get the current tree data
-      final getUrl = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
-      );
+        if (!snapshot.exists) {
+          throw Exception('Tree not found');
+        }
 
-      final getResponse = await http
-          .get(getUrl, headers: {'Authorization': 'Bearer $token'})
-          .timeout(const Duration(seconds: 5));
+        final data = snapshot.data()!;
+        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
 
-      if (getResponse.statusCode != 200) {
-        throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
-      }
+        bool isAddingUpvote = !upvotes.contains(userId);
 
-      final treeData = jsonDecode(getResponse.body);
-      final fields = treeData['fields'] as Map<String, dynamic>;
+        if (upvotes.contains(userId)) {
+          upvotes.remove(userId);
+        } else {
+          upvotes.add(userId);
+          downvotes.remove(userId);
+        }
 
-      // Parse current votes
-      List<String> upvotes =
-          (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
-              ?.map((v) => v['stringValue'] as String)
-              .toList() ??
-          [];
-      List<String> downvotes =
-          (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
-              ?.map((v) => v['stringValue'] as String)
-              .toList() ??
-          [];
-
-      // Toggle upvote
-      bool isAddingUpvote = !upvotes.contains(userId);
-
-      if (upvotes.contains(userId)) {
-        upvotes.remove(userId);
-      } else {
-        upvotes.add(userId);
-        downvotes.remove(userId);
-      }
-
-      // Build update mask
-      String updateMask =
-          'updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes';
-      if (isAddingUpvote) {
-        updateMask += '&updateMask.fieldPaths=lastVerifiedAt';
-      }
-
-      // Update the tree
-      final updateUrl = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?$updateMask',
-      );
-
-      final updateFields = <String, dynamic>{
-        'upvotes': {
-          'arrayValue': {
-            'values': upvotes.map((id) => {'stringValue': id}).toList(),
-          },
-        },
-        'downvotes': {
-          'arrayValue': {
-            'values': downvotes.map((id) => {'stringValue': id}).toList(),
-          },
-        },
-      };
-
-      // Add lastVerifiedAt when adding an upvote
-      if (isAddingUpvote) {
-        updateFields['lastVerifiedAt'] = <String, dynamic>{
-          'timestampValue': DateTime.now().toUtc().toIso8601String(),
+        final updateData = <String, dynamic>{
+          'upvotes': upvotes,
+          'downvotes': downvotes,
         };
-      }
 
-      final updateBody = {'fields': updateFields};
+        // Update lastVerifiedAt when adding an upvote
+        if (isAddingUpvote) {
+          updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+        }
 
-      final updateResponse = await http
-          .patch(
-            updateUrl,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode(updateBody),
-          )
-          .timeout(const Duration(seconds: 10));
+        transaction.update(treeRef, updateData);
+      });
 
-      if (updateResponse.statusCode == 200) {
-        print('[TreeRepo-REST] ✅ Upvote successful');
-      } else {
-        throw Exception(
-          'Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}',
-        );
-      }
+      print('[TreeRepo-SDK] ✅ Upvote successful');
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Upvote failed: $e');
-      print('[TreeRepo-REST] Stack: $stack');
+      print('[TreeRepo-SDK] ❌ Upvote failed: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }
 
-  /// Downvote a tree using REST API
+  /// Downvote a tree using Firebase SDK
   Future<void> downvoteTree(String treeId, String userId) async {
-    print('[TreeRepo-REST] Downvoting tree $treeId for user $userId');
+    print('[TreeRepo-SDK] Downvoting tree $treeId for user $userId');
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('User not authenticated');
-      }
+      final treeRef = _firestore.collection('trees').doc(treeId);
 
-      final token = await user.getIdToken();
-      if (token == null) {
-        throw Exception('Could not get auth token');
-      }
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(treeRef);
 
-      // First, get the current tree data
-      final getUrl = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId',
-      );
+        if (!snapshot.exists) {
+          throw Exception('Tree not found');
+        }
 
-      final getResponse = await http
-          .get(getUrl, headers: {'Authorization': 'Bearer $token'})
-          .timeout(const Duration(seconds: 5));
+        final data = snapshot.data()!;
+        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
 
-      if (getResponse.statusCode != 200) {
-        throw Exception('Failed to fetch tree: ${getResponse.statusCode}');
-      }
+        if (downvotes.contains(userId)) {
+          downvotes.remove(userId);
+        } else {
+          downvotes.add(userId);
+          upvotes.remove(userId);
+        }
 
-      final treeData = jsonDecode(getResponse.body);
-      final fields = treeData['fields'] as Map<String, dynamic>;
+        transaction.update(treeRef, {
+          'upvotes': upvotes,
+          'downvotes': downvotes,
+        });
+      });
 
-      // Parse current votes
-      List<String> upvotes =
-          (fields['upvotes']?['arrayValue']?['values'] as List<dynamic>?)
-              ?.map((v) => v['stringValue'] as String)
-              .toList() ??
-          [];
-      List<String> downvotes =
-          (fields['downvotes']?['arrayValue']?['values'] as List<dynamic>?)
-              ?.map((v) => v['stringValue'] as String)
-              .toList() ??
-          [];
-
-      // Toggle downvote
-      if (downvotes.contains(userId)) {
-        downvotes.remove(userId);
-      } else {
-        downvotes.add(userId);
-        upvotes.remove(userId);
-      }
-
-      // Update the tree
-      final updateUrl = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId?updateMask.fieldPaths=upvotes&updateMask.fieldPaths=downvotes',
-      );
-
-      final updateBody = {
-        'fields': {
-          'upvotes': {
-            'arrayValue': {
-              'values': upvotes.map((id) => {'stringValue': id}).toList(),
-            },
-          },
-          'downvotes': {
-            'arrayValue': {
-              'values': downvotes.map((id) => {'stringValue': id}).toList(),
-            },
-          },
-        },
-      };
-
-      final updateResponse = await http
-          .patch(
-            updateUrl,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode(updateBody),
-          )
-          .timeout(const Duration(seconds: 10));
-
-      if (updateResponse.statusCode == 200) {
-        print('[TreeRepo-REST] ✅ Downvote successful');
-      } else {
-        throw Exception(
-          'Failed to update votes: ${updateResponse.statusCode} - ${updateResponse.body}',
-        );
-      }
+      print('[TreeRepo-SDK] ✅ Downvote successful');
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Downvote failed: $e');
-      print('[TreeRepo-REST] Stack: $stack');
+      print('[TreeRepo-SDK] ❌ Downvote failed: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }
 
   /// Get all posts for a tree
   Future<List<Map<String, dynamic>>> getTreePosts(String treeId) async {
-    print('[TreeRepo-REST] Fetching posts for tree $treeId...');
+    print('[TreeRepo-SDK] Fetching posts for tree $treeId...');
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final snapshot = await _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .get();
 
-      final url = Uri.parse(
-        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId/posts',
-      );
+      print('[TreeRepo-SDK] ✅ Fetched ${snapshot.docs.length} posts');
 
-      // Try with authentication first if user is logged in
-      Map<String, String> headers = {};
-      if (user != null) {
-        final token = await user.getIdToken();
-        if (token != null) {
-          headers['Authorization'] = 'Bearer $token';
-          print('[TreeRepo-REST] Fetching posts with authentication');
-        }
-      } else {
-        print(
-          '[TreeRepo-REST] Fetching posts without authentication (public read)',
-        );
-      }
-
-      final response = await http
-          .get(url, headers: headers)
-          .timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final documents = data['documents'] as List<dynamic>? ?? [];
-
-        print('[TreeRepo-REST] ✅ Fetched ${documents.length} posts');
-
-        // Convert to simplified format
-        return documents.map((doc) {
-          final fields = doc['fields'] as Map<String, dynamic>;
-          final name = doc['name'] as String;
-          final postId = name.split('/').last;
-
-          return {
-            'id': postId,
-            'userId': fields['userId']?['stringValue'] ?? '',
-            'userName': fields['userName']?['stringValue'] ?? 'Anonymous',
-            'imageUrls':
-                (fields['imageUrls']?['arrayValue']?['values']
-                        as List<dynamic>?)
-                    ?.map((v) => v['stringValue'] as String)
-                    .toList() ??
-                [],
-            'comment': fields['comment']?['stringValue'] ?? '',
-            'createdAt': fields['createdAt']?['timestampValue'] ?? '',
-          };
-        }).toList();
-      } else {
-        print(
-          '[TreeRepo-REST] ❌ HTTP ${response.statusCode}: ${response.body}',
-        );
-        return [];
-      }
+      // Convert to simplified format
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'userId': data['userId'] as String? ?? '',
+          'userName': data['userName'] as String? ?? 'Anonymous',
+          'imageUrls': List<String>.from(data['imageUrls'] ?? []),
+          'comment': data['comment'] as String? ?? '',
+          'createdAt':
+              (data['createdAt'] as Timestamp?)?.toDate().toIso8601String() ??
+              '',
+        };
+      }).toList();
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Error fetching posts: $e');
-      print('[TreeRepo-REST] Stack: $stack');
+      print('[TreeRepo-SDK] ❌ Error fetching posts: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
       return [];
     }
   }
@@ -552,24 +245,27 @@ class TreeRepositoryNoConfirm {
     String treeId,
     Map<String, dynamic> postData,
   ) async {
-    print('[TreeRepo-REST] Adding post to tree $treeId...');
+    print('[TreeRepo-SDK] Adding post to tree $treeId...');
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('User not authenticated');
-      }
+      final postRef = _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .doc();
 
-      final token = await user.getIdToken();
-      if (token == null) {
-        throw Exception('Could not get auth token');
-      }
+      await postRef.set({
+        'userId': postData['userId'],
+        'userName': postData['userName'],
+        'imageUrls': postData['imageUrls'],
+        'comment': postData['comment'],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
-      await _addPostToTree(treeId, postData, token);
-      print('[TreeRepo-REST] ✅ Post added successfully!');
+      print('[TreeRepo-SDK] ✅ Post added successfully!');
     } catch (e, stack) {
-      print('[TreeRepo-REST] ❌ Add post failed: $e');
-      print('[TreeRepo-REST] Stack: $stack');
+      print('[TreeRepo-SDK] ❌ Add post failed: $e');
+      print('[TreeRepo-SDK] Stack: $stack');
       rethrow;
     }
   }
