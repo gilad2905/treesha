@@ -262,9 +262,9 @@ class _MyHomePageState extends State<MyHomePage> {
       final filteredTrees = trees.where((tree) {
         // Filter by tree name
         if (_filters.treeName.isNotEmpty) {
-          if (!tree.name
-              .toLowerCase()
-              .contains(_filters.treeName.toLowerCase())) {
+          if (!tree.name.toLowerCase().contains(
+            _filters.treeName.toLowerCase(),
+          )) {
             return false;
           }
         }
@@ -586,12 +586,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void _showFilterDialog() async {
     // Get unique fruit types from all trees
     final allTreesData = await _treeRepositoryRest.getAllTrees();
-    final availableFruitTypes = allTreesData
-        .map((data) => data['fruitType'] as String)
-        .where((type) => type.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final availableFruitTypes =
+        allTreesData
+            .map((data) => data['fruitType'] as String)
+            .where((type) => type.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
     if (!mounted) return;
 
@@ -657,7 +658,7 @@ class _MyHomePageState extends State<MyHomePage> {
       barrierDismissible: false, // Prevent dismissal by tapping outside
       builder: (context) {
         return AddTreeDialog(
-          onAdd: (name, fruitType, image) async {
+          onAdd: (name, fruitType, images, comment) async {
             // Set saving state to disable map interactions
             if (mounted) {
               setState(() {
@@ -666,45 +667,53 @@ class _MyHomePageState extends State<MyHomePage> {
             }
 
             try {
-              // Upload image first if provided
-              String? imageUrl;
-              if (image != null) {
+              // Upload all images
+              List<String> imageUrls = [];
+              if (images.isNotEmpty) {
                 try {
-                  imageUrl = await _firebaseService
-                      .uploadImage(image)
-                      .timeout(
-                        const Duration(seconds: 30),
-                        onTimeout: () {
-                          throw Exception(
-                            'Image upload timed out after 30 seconds',
-                          );
-                        },
-                      );
+                  for (var image in images) {
+                    final imageUrl = await _firebaseService
+                        .uploadImage(image)
+                        .timeout(
+                          const Duration(seconds: 30),
+                          onTimeout: () {
+                            throw Exception(
+                              'Image upload timed out after 30 seconds',
+                            );
+                          },
+                        );
+                    imageUrls.add(imageUrl);
+                  }
                 } catch (e) {
-                  debugPrint('[Main] Image upload failed: $e');
-                  // Continue with tree creation without image
+                  debugPrint('[Main] Some images upload failed: $e');
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Image upload failed: $e. Tree will be added without image.',
-                        ),
+                        content: Text('Some images failed to upload: $e'),
                         backgroundColor: Colors.orange,
                         duration: const Duration(seconds: 3),
                       ),
                     );
                   }
-                  imageUrl = null;
                 }
               }
 
               // Add tree using REST API (bypasses SDK WebSocket issues)
+              // Use first image as main tree image for backward compatibility
               final docId = await _treeRepositoryRest.addTree(
                 userId: _user!.uid,
                 name: name,
                 fruitType: fruitType,
                 position: position,
-                imageUrl: imageUrl,
+                imageUrl: imageUrls.isNotEmpty ? imageUrls.first : null,
+                initialPost: (imageUrls.isNotEmpty || comment.isNotEmpty)
+                    ? {
+                        'userId': _user!.uid,
+                        'userName': _user!.displayName ?? 'Anonymous',
+                        'imageUrls': imageUrls,
+                        'comment': comment,
+                      }
+                    : null,
               );
 
               // Reload trees to show the new tree on map

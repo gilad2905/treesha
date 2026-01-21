@@ -39,6 +39,25 @@ service cloud.firestore {
 
       // Only the tree creator can delete their tree
       allow delete: if isOwner(resource.data.userId);
+
+      // Posts subcollection rules
+      match /posts/{postId} {
+        // Anyone can read posts (even unauthenticated users)
+        allow read: if true;
+
+        // Only authenticated users can create posts
+        // and they must set their own userId
+        allow create: if isAuthenticated()
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.keys().hasAll(['userId', 'userName', 'imageUrls', 'comment', 'createdAt'])
+                      && request.resource.data.imageUrls is list;
+
+        // Only post creator can update their own post
+        allow update: if isOwner(resource.data.userId);
+
+        // Only post creator can delete their own post
+        allow delete: if isOwner(resource.data.userId);
+      }
     }
   }
 }

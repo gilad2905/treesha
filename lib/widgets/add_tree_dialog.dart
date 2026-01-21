@@ -5,8 +5,13 @@ import 'package:treesha/models/fruit_model.dart'; // Import fruit_model
 import 'package:treesha/services/fruit_service.dart'; // Import fruit_service
 
 class AddTreeDialog extends StatefulWidget {
-  final Future<bool> Function(String name, String fruitType, XFile? image)
-  onAdd; // Changed signature
+  final Future<bool> Function(
+    String name,
+    String fruitType,
+    List<XFile> images,
+    String comment,
+  )
+  onAdd; // Updated signature for multiple photos and comment
 
   const AddTreeDialog({super.key, required this.onAdd});
 
@@ -21,11 +26,12 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
   final _nameController = TextEditingController();
   final _fruitTypeController =
       TextEditingController(); // Controller for fruit type input
+  final _commentController = TextEditingController(); // Controller for comment
   String? _selectedFruitType; // Store the final selected fruit type
 
   List<Fruit> _allFruits = []; // All fruits loaded from asset
   List<Fruit> _filteredFruits = []; // Fruits filtered by user input
-  XFile? _image;
+  List<XFile> _images = []; // Multiple images
 
   @override
   void initState() {
@@ -37,6 +43,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
   void dispose() {
     _nameController.dispose();
     _fruitTypeController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -68,13 +75,19 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
     });
   }
 
-  Future<void> _pickImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image != null) {
+  Future<void> _pickImages() async {
+    final images = await ImagePicker().pickMultiImage();
+    if (images.isNotEmpty) {
       setState(() {
-        _image = image;
+        _images.addAll(images);
       });
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
   }
 
   @override
@@ -161,22 +174,76 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                     ),
                   ),
                 const SizedBox(height: 20),
+                // Comment field
+                TextFormField(
+                  controller: _commentController,
+                  decoration: const InputDecoration(
+                    labelText: 'Comment (optional)',
+                    hintText: 'Add a comment about this tree...',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 20),
+                // Photos section
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton.icon(
-                      onPressed: _isLoading ? null : _pickImage,
-                      icon: const Icon(Icons.image),
-                      label: Text(l10n.addImage),
+                    Text(
+                      'Photos (${_images.length})',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _image?.name ?? l10n.noImageSelected,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    TextButton.icon(
+                      onPressed: _isLoading ? null : _pickImages,
+                      icon: const Icon(Icons.add_photo_alternate),
+                      label: const Text('Add Photos'),
                     ),
                   ],
                 ),
+                if (_images.isNotEmpty)
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _images.length,
+                      itemBuilder: (context, index) {
+                        return Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
+                              margin: const EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  _images[index].path,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(Icons.image, size: 50);
+                                  },
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: -4,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _removeImage(index),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
@@ -206,14 +273,18 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                       print(
                         '[AddTreeDialog] Fruit type: ${_selectedFruitType ?? _fruitTypeController.text}',
                       );
-                      print('[AddTreeDialog] Image: ${_image?.name ?? "none"}');
+                      print('[AddTreeDialog] Images: ${_images.length}');
+                      print(
+                        '[AddTreeDialog] Comment: ${_commentController.text}',
+                      );
 
                       setState(() => _isLoading = true);
                       try {
                         final result = await widget.onAdd(
                           _nameController.text,
                           _selectedFruitType ?? _fruitTypeController.text,
-                          _image,
+                          _images,
+                          _commentController.text,
                         );
 
                         print(

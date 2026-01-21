@@ -18,6 +18,7 @@ class TreeRepositoryNoConfirm {
     required String fruitType,
     required Position position,
     String? imageUrl,
+    Map<String, dynamic>? initialPost, // Optional initial post data
   }) async {
     print('[TreeRepo-REST] =====================================');
     print('[TreeRepo-REST] ADDING TREE VIA REST API');
@@ -90,7 +91,19 @@ class TreeRepositoryNoConfirm {
       print('[TreeRepo-REST] Response status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('[TreeRepo-REST] ✅ SUCCESS!');
+        print('[TreeRepo-REST] ✅ Tree created successfully!');
+
+        // If initial post data is provided, add it as a subcollection
+        if (initialPost != null) {
+          try {
+            await _addPostToTree(docId, initialPost, token);
+            print('[TreeRepo-REST] ✅ Initial post added successfully!');
+          } catch (e) {
+            print('[TreeRepo-REST] ⚠️  Failed to add initial post: $e');
+            // Don't fail the entire operation if post fails
+          }
+        }
+
         print('[TreeRepo-REST] =====================================');
         return docId;
       } else {
@@ -103,6 +116,57 @@ class TreeRepositoryNoConfirm {
       print('[TreeRepo-REST] Stack: $stack');
       print('[TreeRepo-REST] =====================================');
       rethrow;
+    }
+  }
+
+  /// Add a post to a tree's posts subcollection
+  Future<void> _addPostToTree(
+    String treeId,
+    Map<String, dynamic> postData,
+    String token,
+  ) async {
+    // Generate post document ID
+    final postId = FirebaseFirestore.instance.collection('posts').doc().id;
+
+    // Build Firestore REST API request for subcollection
+    final url = Uri.parse(
+      '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId/posts/$postId',
+    );
+
+    // Convert post data to Firestore format
+    final body = {
+      'fields': {
+        'userId': {'stringValue': postData['userId']},
+        'userName': {'stringValue': postData['userName']},
+        'imageUrls': {
+          'arrayValue': {
+            'values': (postData['imageUrls'] as List<String>)
+                .map((url) => {'stringValue': url})
+                .toList(),
+          },
+        },
+        'comment': {'stringValue': postData['comment']},
+        'createdAt': {
+          'timestampValue': DateTime.now().toUtc().toIso8601String(),
+        },
+      },
+    };
+
+    final response = await http
+        .patch(
+          url,
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception(
+        'Failed to add post: ${response.statusCode} - ${response.body}',
+      );
     }
   }
 
@@ -410,6 +474,101 @@ class TreeRepositoryNoConfirm {
       }
     } catch (e, stack) {
       print('[TreeRepo-REST] ❌ Downvote failed: $e');
+      print('[TreeRepo-REST] Stack: $stack');
+      rethrow;
+    }
+  }
+
+  /// Get all posts for a tree
+  Future<List<Map<String, dynamic>>> getTreePosts(String treeId) async {
+    print('[TreeRepo-REST] Fetching posts for tree $treeId...');
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      final url = Uri.parse(
+        '$baseUrl/projects/$projectId/databases/$databaseId/documents/trees/$treeId/posts',
+      );
+
+      // Try with authentication first if user is logged in
+      Map<String, String> headers = {};
+      if (user != null) {
+        final token = await user.getIdToken();
+        if (token != null) {
+          headers['Authorization'] = 'Bearer $token';
+          print('[TreeRepo-REST] Fetching posts with authentication');
+        }
+      } else {
+        print(
+          '[TreeRepo-REST] Fetching posts without authentication (public read)',
+        );
+      }
+
+      final response = await http
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final documents = data['documents'] as List<dynamic>? ?? [];
+
+        print('[TreeRepo-REST] ✅ Fetched ${documents.length} posts');
+
+        // Convert to simplified format
+        return documents.map((doc) {
+          final fields = doc['fields'] as Map<String, dynamic>;
+          final name = doc['name'] as String;
+          final postId = name.split('/').last;
+
+          return {
+            'id': postId,
+            'userId': fields['userId']?['stringValue'] ?? '',
+            'userName': fields['userName']?['stringValue'] ?? 'Anonymous',
+            'imageUrls':
+                (fields['imageUrls']?['arrayValue']?['values']
+                        as List<dynamic>?)
+                    ?.map((v) => v['stringValue'] as String)
+                    .toList() ??
+                [],
+            'comment': fields['comment']?['stringValue'] ?? '',
+            'createdAt': fields['createdAt']?['timestampValue'] ?? '',
+          };
+        }).toList();
+      } else {
+        print(
+          '[TreeRepo-REST] ❌ HTTP ${response.statusCode}: ${response.body}',
+        );
+        return [];
+      }
+    } catch (e, stack) {
+      print('[TreeRepo-REST] ❌ Error fetching posts: $e');
+      print('[TreeRepo-REST] Stack: $stack');
+      return [];
+    }
+  }
+
+  /// Add a new post to an existing tree
+  Future<void> addPostToTree(
+    String treeId,
+    Map<String, dynamic> postData,
+  ) async {
+    print('[TreeRepo-REST] Adding post to tree $treeId...');
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final token = await user.getIdToken();
+      if (token == null) {
+        throw Exception('Could not get auth token');
+      }
+
+      await _addPostToTree(treeId, postData, token);
+      print('[TreeRepo-REST] ✅ Post added successfully!');
+    } catch (e, stack) {
+      print('[TreeRepo-REST] ❌ Add post failed: $e');
       print('[TreeRepo-REST] Stack: $stack');
       rethrow;
     }
