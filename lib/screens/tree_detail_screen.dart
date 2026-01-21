@@ -579,6 +579,15 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     );
   }
 
+  String _formatDateTime(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final date =
+        '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    final time =
+        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    return '$date $time';
+  }
+
   Widget _buildPostCard(TreePost post) {
     return Card(
       elevation: 2,
@@ -612,9 +621,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         ),
                       ),
                       Text(
-                        post.createdAt.toDate().toLocal().toString().split(
-                          ' ',
-                        )[0],
+                        _formatDateTime(post.createdAt.toDate()),
                         style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
