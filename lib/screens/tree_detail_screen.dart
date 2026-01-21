@@ -162,56 +162,50 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       ],
                     ),
                     if (selectedImages.isNotEmpty)
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: selectedImages.length,
-                          itemBuilder: (context, index) {
-                            return Stack(
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 100,
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      selectedImages[index].path,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return const Icon(
-                                              Icons.image,
-                                              size: 50,
-                                            );
-                                          },
-                                    ),
-                                  ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: selectedImages.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final image = entry.value;
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                Positioned(
-                                  right: 4,
-                                  top: -4,
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.cancel,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () {
-                                      setDialogState(() {
-                                        selectedImages.removeAt(index);
-                                      });
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    image.path,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(Icons.image, size: 50);
                                     },
                                   ),
                                 ),
-                              ],
-                            );
-                          },
-                        ),
+                              ),
+                              Positioned(
+                                right: 4,
+                                top: -4,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.cancel,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    setDialogState(() {
+                                      selectedImages.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       ),
                   ],
                 ),
