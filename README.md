@@ -158,5 +158,17 @@ Based on your app concept, here are features that would be valuable:
   3. 📸 Multiple photos - Builds trust, engages community
 
 
-can we translate this app to hebrew?
-  (don't just replace english to hebrew, have it ready to be multilaguage, according to user selection)
+1. add more fruit svg's
+2. remove the requirement for having a fruit type the must exist in our list.
+3. write "Report" to table
+4. improve new tree screen
+5. Remove treesh name from main screen.
+6. should we show svg icons of fruits or the tree svg?
+7. improve orange svg?
+8. fix the spacing in the tree details screen when there is an icon of a fruit.
+9. Disclaimer
+10. settings?
+11. share on facebook / instegram... ? ("Created a new tree!" "found this tree!")
+12. instead of the plus button - just show a message "long press on the exact location on the map to add a tree.
+13. Added by? (shaming in case this is junk?)
+14. different type of green? top bar should have white icons on dark gray?

@@ -1,5 +1,5 @@
 [
-  { "fruit_type": "Orange", "fruit_edible_season": "Winter" },
+  { "fruit_type": "Orange", "fruit_edible_season": "Winter", "icon": "orange.svg" },
   { "fruit_type": "Mandarin / Clementine", "fruit_edible_season": "Winter" },
   { "fruit_type": "Grapefruit / Pomelo", "fruit_edible_season": "Winter" },
   { "fruit_type": "Lemon", "fruit_edible_season": "Winter" },
@@ -21,7 +21,8 @@
   { "fruit_type": "Guava", "fruit_edible_season": "Autumn" },
   { "fruit_type": "Date (fresh)", "fruit_edible_season": "Autumn" },
   { "fruit_type": "Quince (Havush)", "fruit_edible_season": "Autumn" },
-  { "fruit_type": "Lychee", "fruit_edible_season": "Early Summer" },
-  { "fruit_type": "Kiwi", "fruit_edible_season": "Autumn–Winter" }
+  { "fruit_type": "Lychee", "fruit_edible_season": "Early Summer", "icon": "lychee.svg" },
+  { "fruit_type": "Kiwi", "fruit_edible_season": "Autumn–Winter", "icon": "kiwi.svg" },
+  { "fruit_type": "banana", "fruit_edible_season": "All Year", "icon": "banana.svg"}
 ]
 

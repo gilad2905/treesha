@@ -13,6 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'package:geolocator/geolocator.dart';
+import 'dart:convert'; // Import for JSON decoding
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -37,6 +38,7 @@ import 'package:treesha/widgets/add_tree_dialog.dart';
 import 'package:treesha/widgets/filter_dialog.dart';
 import 'package:treesha/screens/tree_detail_screen.dart';
 import 'package:treesha/models/tree_filters.dart';
+import 'package:treesha/utils/svg_marker_loader.dart'; // Import the new utility
 
 // You must setup firebase CLI and run `flutterfire configure`
 
@@ -158,6 +160,8 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isSavingTree = false; // Track if tree save is in progress
   List<Tree> _trees = []; // Store trees loaded from REST API
   bool _isLoadingTrees = false; // Track if trees are being loaded
+  Map<String, BitmapDescriptor> _fruitIcons = {}; // Store loaded SVG icons
+  BitmapDescriptor? _defaultTreeIcon; // Default SVG icon
 
 
   @override
@@ -175,12 +179,42 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _determinePosition();
     _loadTrees(); // Load trees using REST API
+    _loadFruitIcons(); // Load fruit SVG icons
+
     _authService.user.listen((user) {
       if (!mounted) return; // Add mounted check
       setState(() {
         _user = user;
       });
     });
+  }
+
+  Future<void> _loadFruitIcons() async {
+    try {
+      // Load default tree icon
+      _defaultTreeIcon = await SvgMarkerLoader.getMarkerFromSvg('assets/tree.svg', size: 80);
+
+      final String response = await rootBundle.loadString('assets/fruits.json');
+      final List<dynamic> data = json.decode(response);
+
+      for (var fruitData in data) {
+        final String fruitType = fruitData['fruit_type'];
+        final String? iconName = fruitData['icon'];
+
+        if (iconName != null && iconName.isNotEmpty) {
+          final String assetPath = 'assets/fruit_icons/$iconName';
+          final BitmapDescriptor icon = await SvgMarkerLoader.getMarkerFromSvg(assetPath, size: 80); // Adjust size as needed
+          _fruitIcons[fruitType] = icon;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _updateMarkers(); // Update markers after icons are loaded
+        });
+      }
+    } catch (e) {
+      debugPrint('[MyHomePage] Error loading fruit icons: $e');
+    }
   }
 
   /// Check if app version meets minimum requirements
@@ -363,11 +397,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Add tree markers
     for (var tree in _trees) {
+      // Determine the icon to use
+      final BitmapDescriptor icon = _fruitIcons[tree.fruitType] ?? _defaultTreeIcon ?? BitmapDescriptor.defaultMarker;
+
       newMarkers.add(
         Marker(
           markerId: MarkerId(tree.id),
           position: LatLng(tree.position.latitude, tree.position.longitude),
-          icon: BitmapDescriptor.defaultMarker,
+          icon: icon, // Use custom icon or default
           onTap: () {
             Navigator.push(
               context,

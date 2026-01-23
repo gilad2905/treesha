@@ -59,6 +59,7 @@ dependencies:
   intl: ^0.20.2
   url_launcher: ^6.3.1
   package_info_plus: ^8.1.2
+  flutter_svg: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +88,8 @@ flutter:
   generate: true
   assets:
     - assets/fruits.json
+    - assets/fruit_icons/
+    - assets/tree.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:

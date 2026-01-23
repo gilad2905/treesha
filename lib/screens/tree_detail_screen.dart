@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/tree_model.dart';
@@ -34,6 +37,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   List<TreePost> _posts = [];
   bool _isLoadingPosts = false;
   bool _isAddingPost = false;
+  String? _fruitIconAsset;
 
   @override
   void initState() {
@@ -58,6 +62,39 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
     // Load posts
     _loadPosts();
+    _loadFruitIcon();
+  }
+
+  Future<void> _loadFruitIcon() async {
+    try {
+      final String response = await rootBundle.loadString('assets/fruits.json');
+      final List<dynamic> data = json.decode(response);
+
+      String? iconName;
+      for (var item in data) {
+        if (item['fruit_type'] == widget.tree.fruitType) {
+          iconName = item['icon'];
+          break;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          if (iconName != null) {
+            _fruitIconAsset = 'assets/fruit_icons/$iconName';
+          } else {
+            _fruitIconAsset = 'assets/tree.svg';
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading fruit icon: $e');
+      if (mounted) {
+        setState(() {
+          _fruitIconAsset = 'assets/tree.svg';
+        });
+      }
+    }
   }
 
   Future<void> _loadPosts() async {
@@ -250,16 +287,29 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l10n.treeNameLabel(widget.tree.name),
-                  style: Theme.of(context).textTheme.headlineSmall,
+                Row(
+                  children: [
+                    if (_fruitIconAsset != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: SvgPicture.asset(
+                          _fruitIconAsset!,
+                          width: 48,
+                          height: 48,
+                        ),
+                      ),
+                    Expanded(
+                      child: Text(
+                        widget.tree.fruitType,
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.fruitTypeLabel(widget.tree.fruitType),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 // Voting section
                 Row(
                   children: [
