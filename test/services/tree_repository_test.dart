@@ -45,6 +45,7 @@ void main() {
           name: 'Test Tree',
           fruitType: 'Apple',
           position: position,
+          userRole: 'user',
         ),
         throwsA(isA<Exception>()),
       );
@@ -54,7 +55,7 @@ void main() {
       // Arrange - mark as configured
       FirestoreConfig.reset();
       // Manually set configured flag (hack for testing)
-      FirestoreConfig.configure(); // This will fail in tests but set the flag
+      FirestoreConfig.setConfigured(true); // This will fail in tests but set the flag
 
       final position = Position(
         latitude: 32.0,
@@ -76,6 +77,7 @@ void main() {
           name: 'Test Tree',
           fruitType: 'Apple',
           position: position,
+          userRole: 'user',
         ),
         throwsA(isA<ArgumentError>()),
       );
@@ -83,6 +85,7 @@ void main() {
 
     test('addTree throws ArgumentError if name is empty', () async {
       // Similar test for empty name
+      FirestoreConfig.setConfigured(true);
       final position = Position(
         latitude: 32.0,
         longitude: 34.0,
@@ -102,12 +105,14 @@ void main() {
           name: '',
           fruitType: 'Apple',
           position: position,
+          userRole: 'user',
         ),
         throwsA(isA<ArgumentError>()),
       );
     });
 
     test('addTree throws ArgumentError if fruitType is empty', () async {
+      FirestoreConfig.setConfigured(true);
       final position = Position(
         latitude: 32.0,
         longitude: 34.0,
@@ -127,6 +132,7 @@ void main() {
           name: 'Test Tree',
           fruitType: '',
           position: position,
+          userRole: 'user',
         ),
         throwsA(isA<ArgumentError>()),
       );

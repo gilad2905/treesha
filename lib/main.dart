@@ -146,6 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late final TreeRepository _treeRepository;
   late final TreeRepositoryNoConfirm _treeRepositoryRest; // REST API version
   User? _user;
+  List<String> _userRoles = ['user'];
 
   GoogleMapController? _mapController;
 
@@ -181,11 +182,20 @@ class _MyHomePageState extends State<MyHomePage> {
     _loadTrees(); // Load trees using REST API
     _loadFruitIcons(); // Load fruit SVG icons
 
-    _authService.user.listen((user) {
-      if (!mounted) return; // Add mounted check
-      setState(() {
-        _user = user;
-      });
+    _authService.user.listen((user) async {
+      if (!mounted) return;
+      
+      List<String> roles = ['user'];
+      if (user != null) {
+        roles = await _authService.getUserRoles(user.uid);
+      }
+
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _userRoles = roles;
+        });
+      }
     });
   }
 
@@ -333,6 +343,7 @@ class _MyHomePageState extends State<MyHomePage> {
           upvotes: List<String>.from(data['upvotes'] as List),
           downvotes: List<String>.from(data['downvotes'] as List),
           lastVerifiedAt: lastVerifiedAt,
+          status: data['status'] as String? ?? 'pending',
         );
       }).toList();
 
@@ -373,12 +384,19 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         }
 
+        // Filter by status
+        if (_filters.statusTypes.isNotEmpty) {
+          if (!_filters.statusTypes.contains(tree.status)) {
+            return false;
+          }
+        }
+
         return true; // Passed all filters
       }).toList();
 
       if (!mounted) return;
       setState(() {
-        _trees = filteredTrees;
+  _trees = List<Tree>.from(filteredTrees);
         _updateMarkers();
       });
     } catch (e, stack) {
@@ -733,24 +751,32 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
               }
 
-              // Add tree using REST API (bypasses SDK WebSocket issues)
-              // Use first image as main tree image for backward compatibility
+              // Add tree using new TreeRepository
               debugPrint('[AddTree] Creating tree at: ${position.latitude}, ${position.longitude}');
-              final docId = await _treeRepositoryRest.addTree(
+              
+              final docId = await _treeRepository.addTree(
                 userId: _user!.uid,
                 name: name,
                 fruitType: fruitType,
                 position: position,
                 imageUrl: imageUrls.isNotEmpty ? imageUrls.first : null,
-                initialPost: (imageUrls.isNotEmpty || comment.isNotEmpty)
-                    ? {
-                        'userId': _user!.uid,
-                        'userName': _user!.displayName ?? 'Anonymous',
-                        'imageUrls': imageUrls,
-                        'comment': comment,
-                      }
-                    : null,
+                userRole: _userRoles.contains('admin') ? 'admin' : 'user',
               );
+
+              // Add initial post if needed
+              if (imageUrls.isNotEmpty || comment.isNotEmpty) {
+                try {
+                  await _treeRepository.addPostToTree(docId, {
+                    'userId': _user!.uid,
+                    'userName': _user!.displayName ?? 'Anonymous',
+                    'imageUrls': imageUrls,
+                    'comment': comment,
+                  });
+                } catch (e) {
+                  debugPrint('[Main] Failed to add initial post: $e');
+                  // Continue, as tree was created
+                }
+              }
 
               // Reload trees to show the new tree on map
               _loadTrees();

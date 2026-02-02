@@ -104,6 +104,7 @@ class TreeRepositoryNoConfirm {
               .toIso8601String(),
           'upvotes': List<String>.from(data['upvotes'] ?? []),
           'downvotes': List<String>.from(data['downvotes'] ?? []),
+          'status': data['status'] as String? ?? 'pending',
         };
       }).toList();
     } catch (e, stack) {

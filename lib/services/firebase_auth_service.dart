@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -12,6 +14,25 @@ class FirebaseAuthService {
   );
 
   Stream<User?> get user => _firebaseAuth.authStateChanges();
+
+  /// Ensure user exists in Firestore users collection with default role
+  Future<void> ensureUserInFirestore(User user) async {
+    // Use the specific 'treesha' database
+    final firestore = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'treesha',
+    );
+    final userDoc = firestore.collection('users').doc(user.uid);
+    final doc = await userDoc.get();
+    if (!doc.exists) {
+      await userDoc.set({
+        'roles': ['user'],
+        'email': user.email ?? '',
+        'displayName': user.displayName ?? '',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
 
   Future<User?> signInWithGoogle() async {
     try {
@@ -28,9 +49,12 @@ class FirebaseAuthService {
       );
       final UserCredential userCredential = await _firebaseAuth
           .signInWithCredential(credential);
-      return userCredential.user;
+      final user = userCredential.user;
+      if (user != null) {
+        await ensureUserInFirestore(user);
+      }
+      return user;
     } catch (e) {
-      // print(e); // Removed print statement
       return null;
     }
   }
@@ -38,5 +62,25 @@ class FirebaseAuthService {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _firebaseAuth.signOut();
+  }
+
+  /// Fetch user roles from Firestore
+  Future<List<String>> getUserRoles(String uid) async {
+    try {
+      final firestore = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'treesha',
+      );
+      final doc = await firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['roles'] is List) {
+          return List<String>.from(data['roles']);
+        }
+      }
+    } catch (e) {
+      debugPrint('[FirebaseAuthService] Error fetching roles: $e');
+    }
+    return ['user']; // Default role
   }
 }

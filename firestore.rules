@@ -44,7 +44,22 @@ service cloud.firestore {
                     && request.resource.data.fruitType == resource.data.fruitType
                     && request.resource.data.position == resource.data.position
                     && request.resource.data.createdAt == resource.data.createdAt
-                    && request.resource.data.imageUrl == resource.data.imageUrl;
+                    && request.resource.data.imageUrl == resource.data.imageUrl
+                    
+                    // Phase 5: Security Rules
+                    // 1. Only allow upvotes from non-submitters (Creator cannot vote on their own tree)
+                    && resource.data.userId != request.auth.uid
+                    
+                    // 2. Status logic: Only allow status changes via upvote logic
+                    && (
+                      // Status doesn't change
+                      request.resource.data.status == resource.data.status
+                      ||
+                      // OR Status changes from pending to approved AND upvotes >= 3 (hardcoded for now as per plan)
+                      (resource.data.status == 'pending' 
+                       && request.resource.data.status == 'approved' 
+                       && request.resource.data.upvotes.size() >= 3)
+                    );
 
       // Only the tree creator can delete their tree
       allow delete: if isOwner(resource.data.userId);
@@ -67,6 +82,14 @@ service cloud.firestore {
         // Only post creator can delete their own post
         allow delete: if isOwner(resource.data.userId);
       }
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Only the user themselves can create or update their document
+      allow create, update: if isAuthenticated() && request.auth.uid == userId;
+      // Only the user can read their own document
+      allow read: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }

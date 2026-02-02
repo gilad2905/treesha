@@ -11,6 +11,7 @@ import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/models/tree_post.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
 import 'package:treesha/services/firebase_service.dart';
+import 'package:treesha/services/tree_repository.dart';
 import 'package:treesha/services/tree_repository_no_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,7 +27,9 @@ class TreeDetailScreen extends StatefulWidget {
 class _TreeDetailScreenState extends State<TreeDetailScreen> {
   final FirebaseAuthService _authService = FirebaseAuthService();
   final FirebaseService _firebaseService = FirebaseService();
-  final TreeRepositoryNoConfirm _treeRepository = TreeRepositoryNoConfirm();
+  final TreeRepository _treeRepository = TreeRepository();
+  final TreeRepositoryNoConfirm _treeRepositoryNoConfirm =
+      TreeRepositoryNoConfirm();
   User? _user;
 
   // Local state to track votes for immediate UI updates
@@ -49,7 +52,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
     // Debug: Check lastVerifiedAt
     debugPrint('[TreeDetailScreen] Tree: ${widget.tree.name}');
-    debugPrint('[TreeDetailScreen] lastVerifiedAt: ${widget.tree.lastVerifiedAt}');
+    debugPrint(
+      '[TreeDetailScreen] lastVerifiedAt: ${widget.tree.lastVerifiedAt}',
+    );
     debugPrint('[TreeDetailScreen] upvotes: ${widget.tree.upvotes.length}');
 
     _authService.user.listen((user) {
@@ -104,12 +109,15 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     });
 
     try {
-      final postsData = await _treeRepository.getTreePosts(widget.tree.id);
+      final postsData = await _treeRepositoryNoConfirm.getTreePosts(
+        widget.tree.id,
+      );
       if (!mounted) return;
 
-      final posts = postsData.map((data) {
-        return TreePost.fromRestApi(data, data['id'] as String);
-      }).toList();
+      final posts =
+          postsData.map((data) {
+            return TreePost.fromRestApi(data, data['id'] as String);
+          }).toList();
 
       posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
@@ -134,13 +142,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     final lat = widget.tree.position.latitude;
     final lng = widget.tree.position.longitude;
 
-    final url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+    final url = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+    );
 
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error opening maps: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error opening maps: $e')));
     }
   }
 
@@ -184,7 +196,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
         imageUrls.add(url);
       }
 
-      await _treeRepository.addPostToTree(widget.tree.id, {
+      await _treeRepositoryNoConfirm.addPostToTree(widget.tree.id, {
         'userId': _user!.uid,
         'userName': _user!.displayName ?? 'Anonymous',
         'imageUrls': imageUrls,
@@ -301,10 +313,34 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     Expanded(
                       child: Text(
                         widget.tree.fruitType,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.tree.status == 'approved'
+                            ? Colors.green
+                            : widget.tree.status == 'rejected'
+                                ? Colors.red
+                                : Colors.orange,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        widget.tree.status.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -332,6 +368,10 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           return;
                         }
 
+                        // Optimistic update
+                        final oldUpvotes = List<String>.from(_upvotes);
+                        final oldDownvotes = List<String>.from(_downvotes);
+
                         setState(() {
                           if (_upvotes.contains(_user!.uid)) {
                             _upvotes.remove(_user!.uid);
@@ -342,19 +382,30 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         });
 
                         try {
-                          await _firebaseService.upvoteTree(
+                          await _treeRepository.upvoteTree(
                             widget.tree.id,
                             _user!.uid,
                           );
                         } catch (e) {
+                          // Revert if failed
                           setState(() {
-                            _upvotes = List.from(widget.tree.upvotes);
-                            _downvotes = List.from(widget.tree.downvotes);
+                            _upvotes = oldUpvotes;
+                            _downvotes = oldDownvotes;
                           });
+
                           if (!mounted) return;
+
+                          String errorMessage;
+                          if (e is TreeRepositoryException) {
+                            errorMessage = e.message;
+                          } else {
+                            errorMessage = e.toString();
+                          }
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(l10n.errorUpvoting(e.toString())),
+                              content: Text('Error: $errorMessage'),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }
@@ -388,6 +439,10 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           return;
                         }
 
+                        // Optimistic update
+                        final oldUpvotes = List<String>.from(_upvotes);
+                        final oldDownvotes = List<String>.from(_downvotes);
+
                         setState(() {
                           if (_downvotes.contains(_user!.uid)) {
                             _downvotes.remove(_user!.uid);
@@ -398,19 +453,30 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         });
 
                         try {
-                          await _firebaseService.downvoteTree(
+                          await _treeRepository.downvoteTree(
                             widget.tree.id,
                             _user!.uid,
                           );
                         } catch (e) {
+                          // Revert
                           setState(() {
-                            _upvotes = List.from(widget.tree.upvotes);
-                            _downvotes = List.from(widget.tree.downvotes);
+                            _upvotes = oldUpvotes;
+                            _downvotes = oldDownvotes;
                           });
+
                           if (!mounted) return;
+
+                          String errorMessage;
+                          if (e is TreeRepositoryException) {
+                            errorMessage = e.message;
+                          } else {
+                            errorMessage = e.toString();
+                          }
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(l10n.errorDownvoting(e.toString())),
+                              content: Text('Error: $errorMessage'),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }

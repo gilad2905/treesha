@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:treesha/constants.dart';
 import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/services/firestore_config.dart';
 
@@ -9,18 +11,25 @@ class TreeRepository {
   final FirebaseFirestore _firestore;
 
   TreeRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore =
+          firestore ??
+          FirebaseFirestore.instanceFor(
+            app: Firebase.app(),
+            databaseId: 'treesha',
+          );
 
   /// Add a new tree to Firestore
   ///
   /// Uses a different approach: Creates document with explicit ID first,
   /// then writes data. This sometimes bypasses WebSocket connection issues.
+  /// [userRole] should be 'admin' or 'user'. Admins' trees are auto-approved.
   Future<String> addTree({
     required String userId,
     required String name,
     required String fruitType,
     required Position position,
     String? imageUrl,
+    required String userRole,
   }) async {
     print('[TreeRepository] =====================================');
     print('[TreeRepository] ADD TREE - NEW APPROACH');
@@ -31,6 +40,13 @@ class TreeRepository {
     print(
       '[TreeRepository]   Position: ${position.latitude}, ${position.longitude}',
     );
+
+    // Check configuration
+    if (!FirestoreConfig.isConfigured) {
+      throw Exception(
+        'Firestore not configured. Call FirestoreConfig.configure() first.',
+      );
+    }
 
     // Validate inputs
     if (userId.isEmpty) throw ArgumentError('userId cannot be empty');
@@ -48,6 +64,10 @@ class TreeRepository {
       'createdAt': Timestamp.fromDate(now),
       'upvotes': <String>[],
       'downvotes': <String>[],
+      'status':
+          userRole == AppConstants.statusApproved || userRole == 'admin'
+              ? AppConstants.statusApproved
+              : AppConstants.statusPending,
     };
 
     print('[TreeRepository] Document data prepared');
@@ -110,11 +130,218 @@ class TreeRepository {
     }
   }
 
+  /// Upvote a tree
+  ///
+  /// Adds userId to upvotes, removes from downvotes.
+  /// If upvotes >= threshold, updates status to approved.
+  /// Throws [TreeRepositoryException] if user is creator.
+  Future<void> upvoteTree(String treeId, String userId) async {
+    final treeRef = _firestore.collection('trees').doc(treeId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(treeRef);
+
+        if (!snapshot.exists) {
+          throw TreeRepositoryException(
+            'Tree not found',
+            code: 'not-found',
+          );
+        }
+
+        final data = snapshot.data()!;
+
+        // Check 1: Prevent creator from upvoting
+        if (data['userId'] == userId) {
+          throw TreeRepositoryException(
+            'You cannot upvote your own tree',
+            code: 'permission-denied',
+          );
+        }
+
+        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
+
+        bool isAddingUpvote = !upvotes.contains(userId);
+
+        if (upvotes.contains(userId)) {
+          upvotes.remove(userId);
+        } else {
+          upvotes.add(userId);
+          downvotes.remove(userId);
+        }
+
+        final updateData = <String, dynamic>{
+          'upvotes': upvotes,
+          'downvotes': downvotes,
+        };
+
+        // Update lastVerifiedAt when adding an upvote
+        if (isAddingUpvote) {
+          updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+        }
+
+        // Check 2: Auto-approval logic
+        final String currentStatus =
+            data['status'] ?? AppConstants.statusPending;
+
+        if (currentStatus == AppConstants.statusPending &&
+            upvotes.length >= AppConstants.requiredTreeUpvotes) {
+          updateData['status'] = AppConstants.statusApproved;
+        }
+
+        transaction.update(treeRef, updateData);
+      });
+    } on TreeRepositoryException {
+      rethrow;
+    } on FirebaseException catch (e) {
+      throw TreeRepositoryException(
+        'Failed to upvote tree: ${e.message}',
+        code: e.code,
+        originalException: e,
+      );
+    } catch (e) {
+      throw TreeRepositoryException(
+        'Failed to upvote tree: $e',
+        code: 'unknown',
+        originalException: e,
+      );
+    }
+  }
+
+  /// Downvote a tree
+  ///
+  /// Adds userId to downvotes, removes from upvotes.
+  Future<void> downvoteTree(String treeId, String userId) async {
+    final treeRef = _firestore.collection('trees').doc(treeId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(treeRef);
+
+        if (!snapshot.exists) {
+          throw TreeRepositoryException(
+            'Tree not found',
+            code: 'not-found',
+          );
+        }
+
+        final data = snapshot.data()!;
+        
+        // Note: Creators CAN downvote their own tree if they realize it's gone/bad?
+        // Logic says "Prevent submitter from upvoting". Doesn't explicitly say downvoting.
+        // Assuming creators shouldn't verify their own tree, but downvoting effectively says "it's not here".
+        // Use case: Creator realizes they made a mistake?
+        // For consistency, let's block voting entirely for creators.
+        if (data['userId'] == userId) {
+          throw TreeRepositoryException(
+            'You cannot vote on your own tree',
+            code: 'permission-denied',
+          );
+        }
+
+        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
+
+        if (downvotes.contains(userId)) {
+          downvotes.remove(userId);
+        } else {
+          downvotes.add(userId);
+          upvotes.remove(userId);
+        }
+
+        transaction.update(treeRef, {
+          'upvotes': upvotes,
+          'downvotes': downvotes,
+        });
+      });
+    } on TreeRepositoryException {
+      rethrow;
+    } on FirebaseException catch (e) {
+      throw TreeRepositoryException(
+        'Failed to downvote tree: ${e.message}',
+        code: e.code,
+        originalException: e,
+      );
+    } catch (e) {
+      throw TreeRepositoryException(
+        'Failed to downvote tree: $e',
+        code: 'unknown',
+        originalException: e,
+      );
+    }
+  }
+
   /// Get all trees
   Stream<List<Tree>> getTrees() {
     return _firestore.collection('trees').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => Tree.fromFirestore(doc)).toList();
     });
+  }
+
+  /// Get all posts for a tree
+  Future<List<Map<String, dynamic>>> getTreePosts(String treeId) async {
+    print('[TreeRepository] Fetching posts for tree $treeId...');
+
+    try {
+      final snapshot = await _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      print('[TreeRepository] ✅ Fetched ${snapshot.docs.length} posts');
+
+      // Convert to simplified format
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'userId': data['userId'] as String? ?? '',
+          'userName': data['userName'] as String? ?? 'Anonymous',
+          'imageUrls': List<String>.from(data['imageUrls'] ?? []),
+          'comment': data['comment'] as String? ?? '',
+          'createdAt':
+              (data['createdAt'] as Timestamp?)?.toDate().toIso8601String() ??
+              '',
+        };
+      }).toList();
+    } catch (e, stack) {
+      print('[TreeRepository] ❌ Error fetching posts: $e');
+      print('[TreeRepository] Stack: $stack');
+      return [];
+    }
+  }
+
+  /// Add a new post to an existing tree
+  Future<void> addPostToTree(
+    String treeId,
+    Map<String, dynamic> postData,
+  ) async {
+    print('[TreeRepository] Adding post to tree $treeId...');
+
+    try {
+      final postRef = _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .doc();
+
+      await postRef.set({
+        'userId': postData['userId'],
+        'userName': postData['userName'],
+        'imageUrls': postData['imageUrls'],
+        'comment': postData['comment'],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      print('[TreeRepository] ✅ Post added successfully!');
+    } catch (e, stack) {
+      print('[TreeRepository] ❌ Add post failed: $e');
+      print('[TreeRepository] Stack: $stack');
+      rethrow;
+    }
   }
 
   /// Test write operation

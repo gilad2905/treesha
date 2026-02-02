@@ -141,11 +141,7 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                     if (value == null || value.isEmpty) {
                       return l10n.pleaseEnterFruitType;
                     }
-                    // Check if the entered value is one of the valid fruit types
-                    if (_allFruits.any((fruit) => fruit.type == value)) {
-                      return null; // Valid fruit selected
-                    }
-                    return l10n.pleaseSelectValidFruit;
+                    return null; // Any non-empty string is valid
                   },
                 ),
                 // Display suggestions

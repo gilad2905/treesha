@@ -43,6 +43,13 @@ class FirestoreConfig {
       debugPrint('[FirestoreConfig] Applying settings...');
       FirebaseFirestore.instance.settings = settings;
 
+      // Apply to treesha database as well
+      final treeshaDb = FirebaseFirestore.instanceFor(
+        app: Firebase.app(),
+        databaseId: 'treesha',
+      );
+      treeshaDb.settings = settings;
+
       // Verify settings were applied
       await Future.delayed(const Duration(milliseconds: 100));
       final applied = FirebaseFirestore.instance.settings;
@@ -90,5 +97,10 @@ class FirestoreConfig {
   static void reset() {
     _isConfigured = false;
     _appliedSettings = null;
+  }
+
+  /// Manually set configured state (for testing)
+  static void setConfigured(bool value) {
+    _isConfigured = value;
   }
 }

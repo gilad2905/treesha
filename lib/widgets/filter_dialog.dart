@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:treesha/constants.dart';
 import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/tree_filters.dart';
 
@@ -20,7 +21,14 @@ class _FilterDialogState extends State<FilterDialog> {
   late DateTime? _lastVerifiedAfter;
   late DateTime? _lastAddedAfter;
   late Set<String> _selectedFruitTypes;
+  late Set<String> _selectedStatusTypes;
   late TextEditingController _treeNameController;
+
+  final Map<String, String> _statusLabels = {
+    AppConstants.statusApproved: 'Approved',
+    AppConstants.statusPending: 'Pending',
+    AppConstants.statusRejected: 'Rejected',
+  };
 
   @override
   void initState() {
@@ -28,6 +36,7 @@ class _FilterDialogState extends State<FilterDialog> {
     _lastVerifiedAfter = widget.initialFilters.lastVerifiedAfter;
     _lastAddedAfter = widget.initialFilters.lastAddedAfter;
     _selectedFruitTypes = Set.from(widget.initialFilters.fruitTypes);
+    _selectedStatusTypes = Set.from(widget.initialFilters.statusTypes);
     _treeNameController = TextEditingController(
       text: widget.initialFilters.treeName,
     );
@@ -108,6 +117,50 @@ class _FilterDialogState extends State<FilterDialog> {
                   );
                 }).toList(),
               ),
+            const SizedBox(height: 24),
+
+            // Status Filter
+            Text(
+              'Status',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _statusLabels.entries.map((entry) {
+                final status = entry.key;
+                final label = entry.value;
+                final isSelected = _selectedStatusTypes.contains(status);
+                return FilterChip(
+                  label: Text(label),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedStatusTypes.add(status);
+                      } else {
+                        _selectedStatusTypes.remove(status);
+                      }
+                    });
+                  },
+                  backgroundColor:
+                      status == AppConstants.statusApproved
+                          ? Colors.green.withOpacity(0.1)
+                          : status == AppConstants.statusRejected
+                              ? Colors.red.withOpacity(0.1)
+                              : null,
+                  selectedColor:
+                      status == AppConstants.statusApproved
+                          ? Colors.green.withOpacity(0.3)
+                          : status == AppConstants.statusRejected
+                              ? Colors.red.withOpacity(0.3)
+                              : null,
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 24),
 
             // Last Verified Date Filter
@@ -226,6 +279,7 @@ class _FilterDialogState extends State<FilterDialog> {
               lastVerifiedAfter: _lastVerifiedAfter,
               lastAddedAfter: _lastAddedAfter,
               fruitTypes: _selectedFruitTypes,
+              statusTypes: _selectedStatusTypes,
               treeName: _treeNameController.text.trim(),
             );
             Navigator.of(context).pop(filters);

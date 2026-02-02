@@ -11,6 +11,7 @@ class Tree {
   final List<String> upvotes;
   final List<String> downvotes;
   final Timestamp? lastVerifiedAt; // Timestamp of last upvote
+  final String status; // 'pending', 'approved', 'rejected'
 
   int get verificationScore => upvotes.length - downvotes.length;
 
@@ -25,15 +26,14 @@ class Tree {
     required this.upvotes,
     required this.downvotes,
     this.lastVerifiedAt,
+    required this.status,
   });
 
   factory Tree.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return Tree(
       id: doc.id,
-      userId:
-          data['userId'] ??
-          '', // Default to empty string for backward compatibility
+      userId: data['userId'] ?? '',
       name: data['name'] ?? '',
       fruitType: data['fruitType'] ?? '',
       position: data['position'] ?? const GeoPoint(0, 0),
@@ -42,6 +42,7 @@ class Tree {
       upvotes: List<String>.from(data['upvotes'] ?? []),
       downvotes: List<String>.from(data['downvotes'] ?? []),
       lastVerifiedAt: data['lastVerifiedAt'],
+      status: data['status'] ?? 'pending',
     );
   }
 }

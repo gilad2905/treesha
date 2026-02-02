@@ -40,13 +40,14 @@ class FirebaseService {
     }
   }
 
+  /// [userRole] should be 'admin' or 'user'. Admins' trees are auto-approved.
   Future<bool> addTree({
-    // Changed return type to Future<bool>
     required String userId, // User ID of the tree creator
     required String name,
     required String fruitType,
     required Position position,
     XFile? image,
+    required String userRole,
   }) async {
     debugPrint(
       '[FirebaseService] Starting addTree - userId: $userId, name: $name, fruitType: $fruitType',
@@ -106,6 +107,7 @@ class FirebaseService {
         'createdAt': timestamp, // Use explicit timestamp
         'upvotes': [],
         'downvotes': [],
+        'status': userRole == 'admin' ? 'approved' : 'pending',
       };
 
       debugPrint('[FirebaseService] Using explicit timestamp: $timestamp');
@@ -204,55 +206,21 @@ class FirebaseService {
       );
       debugPrint('[FirebaseService]   Calling add()...');
 
-      DocumentReference? docRef;
-      bool operationStarted = false;
+  DocumentReference? docRef;
 
       try {
-        // Mark that we're starting
-        operationStarted = true;
         debugPrint('[FirebaseService] Step 5: Awaiting add() response...');
-
-        // Try the add operation
         docRef = await collectionRef.add(payload);
-
         debugPrint('[FirebaseService] ✅ SUCCESS! Add operation completed');
         debugPrint('[FirebaseService]   Document ID: ${docRef.id}');
-      } on FirebaseException catch (e) {
-        debugPrint(
-          '[FirebaseService] ========================================',
-        );
-        debugPrint('[FirebaseService] ❌ ERROR: FirebaseException during add');
-        debugPrint('[FirebaseService] Code: ${e.code}');
-        debugPrint('[FirebaseService] Message: ${e.message}');
-        debugPrint('[FirebaseService] Plugin: ${e.plugin}');
-        debugPrint(
-          '[FirebaseService] ========================================',
-        );
-
-        if (e.code == 'permission-denied') {
-          debugPrint('[FirebaseService] PERMISSION DENIED');
-          debugPrint(
-            '[FirebaseService] Your rules expire 2026-02-18, so this should work!',
-          );
-          debugPrint(
-            '[FirebaseService] Try updating rules in Firebase Console',
-          );
-        } else if (e.code == 'unavailable') {
-          debugPrint('[FirebaseService] UNAVAILABLE - Cannot reach Firebase');
-        } else if (e.code == 'unauthenticated') {
-          debugPrint('[FirebaseService] UNAUTHENTICATED - User not logged in');
-        }
+      } on FirebaseException {
         rethrow;
       } catch (e, stackTrace) {
-        debugPrint(
-          '[FirebaseService] ========================================',
-        );
-        debugPrint('[FirebaseService] ❌ UNEXPECTED ERROR: ${e.runtimeType}');
+        debugPrint('[FirebaseService] ========================================');
+        debugPrint('[FirebaseService] ❌ UNEXPECTED ERROR: \\${e.runtimeType}');
         debugPrint('[FirebaseService] Error: $e');
         debugPrint('[FirebaseService] Stack: $stackTrace');
-        debugPrint(
-          '[FirebaseService] ========================================',
-        );
+        debugPrint('[FirebaseService] ========================================');
         rethrow;
       }
 
@@ -345,10 +313,9 @@ class FirebaseService {
 
         transaction.update(treeRef, updateData);
       });
-    } on FirebaseException catch (e) {
-      rethrow; // Use rethrow
+    } on FirebaseException {
+      rethrow;
     } catch (error) {
-      // ignore: unused_catch_clause
       throw FirebaseException(
         plugin: "firebase_firestore",
         code: "unknown",
@@ -384,10 +351,9 @@ class FirebaseService {
           'downvotes': downvotes,
         });
       });
-    } on FirebaseException catch (e) {
-      rethrow; // Use rethrow
+    } on FirebaseException {
+      rethrow;
     } catch (error) {
-      // ignore: unused_catch_clause
       throw FirebaseException(
         plugin: "firebase_firestore",
         code: "unknown",
