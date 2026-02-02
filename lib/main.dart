@@ -213,8 +213,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
         if (iconName != null && iconName.isNotEmpty) {
           final String assetPath = 'assets/fruit_icons/$iconName';
-          final BitmapDescriptor icon = await SvgMarkerLoader.getMarkerFromSvg(assetPath, size: 80); // Adjust size as needed
-          _fruitIcons[fruitType] = icon;
+          final BitmapDescriptor icon = await SvgMarkerLoader.getMarkerFromSvg(
+            assetPath,
+            size: 80,
+          ); // Adjust size as needed
+          _fruitIcons[fruitType.toLowerCase()] = icon;
         }
       }
       if (mounted) {
@@ -416,7 +419,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // Add tree markers
     for (var tree in _trees) {
       // Determine the icon to use
-      final BitmapDescriptor icon = _fruitIcons[tree.fruitType] ?? _defaultTreeIcon ?? BitmapDescriptor.defaultMarker;
+      final BitmapDescriptor icon =
+          _fruitIcons[tree.fruitType.toLowerCase()] ??
+          _defaultTreeIcon ??
+          BitmapDescriptor.defaultMarker;
 
       newMarkers.add(
         Marker(

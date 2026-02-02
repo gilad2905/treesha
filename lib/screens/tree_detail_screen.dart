@@ -77,7 +77,8 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
       String? iconName;
       for (var item in data) {
-        if (item['fruit_type'] == widget.tree.fruitType) {
+        if (item['fruit_type'].toString().toLowerCase() ==
+            widget.tree.fruitType.toLowerCase()) {
           iconName = item['icon'];
           break;
         }
