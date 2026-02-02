@@ -9,6 +9,45 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get fruitTypeOlive => 'Olive';
+
+  @override
+  String get fruitTypeAlmond => 'Almond';
+
+  @override
+  String get fruitTypeCarobHaruv => 'Carob (Haruv)';
+
+  @override
+  String get fruitTypeMulberryWhite => 'Mulberry (White)';
+
+  @override
+  String get fruitTypeMulberryBlack => 'Mulberry (Black)';
+
+  @override
+  String get fruitTypePear => 'Pear';
+
+  @override
+  String get fruitTypeJujubeShizaf => 'Jujube (Shizaf)';
+
+  @override
+  String get fruitTypeMedlar => 'Medlar';
+
+  @override
+  String get fruitTypeChestnut => 'Chestnut';
+
+  @override
+  String get fruitTypePapaya => 'Papaya';
+
+  @override
+  String get fruitTypeDragonFruitPitaya => 'Dragon Fruit (Pitaya)';
+
+  @override
+  String get fruitTypeJackfruit => 'Jackfruit';
+
+  @override
+  String get fruitTypeLongan => 'Longan';
+
+  @override
   String get appTitle => 'Treesha';
 
   @override

@@ -23,6 +23,19 @@
   { "fruit_type": "Quince (Havush)", "fruit_edible_season": "Autumn" },
   { "fruit_type": "Lychee", "fruit_edible_season": "Early Summer", "icon": "lychee.svg" },
   { "fruit_type": "Kiwi", "fruit_edible_season": "Autumn–Winter", "icon": "kiwi.svg" },
-  { "fruit_type": "banana", "fruit_edible_season": "All Year", "icon": "banana.svg"}
+  { "fruit_type": "banana", "fruit_edible_season": "All Year", "icon": "banana.svg"},
+  { "fruit_type": "Olive", "fruit_edible_season": "Autumn–Winter" },
+  { "fruit_type": "Almond", "fruit_edible_season": "Spring (green), Summer (dry)" },
+  { "fruit_type": "Carob (Haruv)", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Mulberry (White)", "fruit_edible_season": "Spring" },
+  { "fruit_type": "Mulberry (Black)", "fruit_edible_season": "Spring" },
+  { "fruit_type": "Pear", "fruit_edible_season": "Late Spring–Summer" },
+  { "fruit_type": "Jujube (Shizaf)", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Medlar", "fruit_edible_season": "Late Autumn" },
+  { "fruit_type": "Chestnut", "fruit_edible_season": "Autumn" },
+  { "fruit_type": "Papaya", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Dragon Fruit (Pitaya)", "fruit_edible_season": "Summer–Autumn" },
+  { "fruit_type": "Jackfruit", "fruit_edible_season": "Summer" },
+  { "fruit_type": "Longan", "fruit_edible_season": "Summer" }
 ]
 

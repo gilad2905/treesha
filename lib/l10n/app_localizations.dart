@@ -98,6 +98,84 @@ abstract class AppLocalizations {
     Locale('he'),
   ];
 
+  /// Fruit type: Olive
+  ///
+  /// In en, this message translates to:
+  /// **'Olive'**
+  String get fruitTypeOlive;
+
+  /// Fruit type: Almond
+  ///
+  /// In en, this message translates to:
+  /// **'Almond'**
+  String get fruitTypeAlmond;
+
+  /// Fruit type: Carob (Haruv)
+  ///
+  /// In en, this message translates to:
+  /// **'Carob (Haruv)'**
+  String get fruitTypeCarobHaruv;
+
+  /// Fruit type: Mulberry (White)
+  ///
+  /// In en, this message translates to:
+  /// **'Mulberry (White)'**
+  String get fruitTypeMulberryWhite;
+
+  /// Fruit type: Mulberry (Black)
+  ///
+  /// In en, this message translates to:
+  /// **'Mulberry (Black)'**
+  String get fruitTypeMulberryBlack;
+
+  /// Fruit type: Pear
+  ///
+  /// In en, this message translates to:
+  /// **'Pear'**
+  String get fruitTypePear;
+
+  /// Fruit type: Jujube (Shizaf)
+  ///
+  /// In en, this message translates to:
+  /// **'Jujube (Shizaf)'**
+  String get fruitTypeJujubeShizaf;
+
+  /// Fruit type: Medlar
+  ///
+  /// In en, this message translates to:
+  /// **'Medlar'**
+  String get fruitTypeMedlar;
+
+  /// Fruit type: Chestnut
+  ///
+  /// In en, this message translates to:
+  /// **'Chestnut'**
+  String get fruitTypeChestnut;
+
+  /// Fruit type: Papaya
+  ///
+  /// In en, this message translates to:
+  /// **'Papaya'**
+  String get fruitTypePapaya;
+
+  /// Fruit type: Dragon Fruit (Pitaya)
+  ///
+  /// In en, this message translates to:
+  /// **'Dragon Fruit (Pitaya)'**
+  String get fruitTypeDragonFruitPitaya;
+
+  /// Fruit type: Jackfruit
+  ///
+  /// In en, this message translates to:
+  /// **'Jackfruit'**
+  String get fruitTypeJackfruit;
+
+  /// Fruit type: Longan
+  ///
+  /// In en, this message translates to:
+  /// **'Longan'**
+  String get fruitTypeLongan;
+
   /// The application title
   ///
   /// In en, this message translates to:

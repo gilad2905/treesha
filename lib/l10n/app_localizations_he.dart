@@ -9,6 +9,45 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get fruitTypeOlive => 'זית';
+
+  @override
+  String get fruitTypeAlmond => 'שקד';
+
+  @override
+  String get fruitTypeCarobHaruv => 'חרוב';
+
+  @override
+  String get fruitTypeMulberryWhite => 'תות עץ (לבן)';
+
+  @override
+  String get fruitTypeMulberryBlack => 'תות עץ (שחור)';
+
+  @override
+  String get fruitTypePear => 'אגס';
+
+  @override
+  String get fruitTypeJujubeShizaf => 'שיזף';
+
+  @override
+  String get fruitTypeMedlar => 'שסק אירופי (מדלר)';
+
+  @override
+  String get fruitTypeChestnut => 'ערמון';
+
+  @override
+  String get fruitTypePapaya => 'פפאיה';
+
+  @override
+  String get fruitTypeDragonFruitPitaya => 'פרי הדרקון (פיטאיה)';
+
+  @override
+  String get fruitTypeJackfruit => 'ג\'קפרוט';
+
+  @override
+  String get fruitTypeLongan => 'לונגן';
+
+  @override
   String get appTitle => 'טרישה';
 
   @override
