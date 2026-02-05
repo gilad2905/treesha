@@ -212,12 +212,16 @@ class _MyHomePageState extends State<MyHomePage> {
         final String? iconName = fruitData['icon'];
 
         if (iconName != null && iconName.isNotEmpty) {
-          final String assetPath = 'assets/fruit_icons/$iconName';
-          final BitmapDescriptor icon = await SvgMarkerLoader.getMarkerFromSvg(
-            assetPath,
-            size: 80,
-          ); // Adjust size as needed
-          _fruitIcons[fruitType.toLowerCase()] = icon;
+          try {
+            final String assetPath = 'assets/fruit_icons/$iconName';
+            final BitmapDescriptor icon = await SvgMarkerLoader.getMarkerFromSvg(
+              assetPath,
+              size: 80,
+            ); // Adjust size as needed
+            _fruitIcons[fruitType.toLowerCase()] = icon;
+          } catch (e) {
+            debugPrint('[MyHomePage] Warning: Could not load icon for $fruitType ($iconName): $e');
+          }
         }
       }
       if (mounted) {
