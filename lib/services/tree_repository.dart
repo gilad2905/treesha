@@ -272,6 +272,78 @@ class TreeRepository {
     }
   }
 
+  /// Report a tree
+  Future<void> reportTree(String treeId, String userId) async {
+    final treeRef = _firestore.collection('trees').doc(treeId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(treeRef);
+        if (!snapshot.exists) {
+          throw TreeRepositoryException('Tree not found', code: 'not-found');
+        }
+
+        final data = snapshot.data()!;
+        List<String> reported = List<String>.from(data['reported'] ?? []);
+
+        if (!reported.contains(userId)) {
+          reported.add(userId);
+          transaction.update(treeRef, {'reported': reported});
+        }
+      });
+    } on FirebaseException catch (e) {
+      throw TreeRepositoryException('Failed to report tree: ${e.message}',
+          code: e.code, originalException: e);
+    } catch (e) {
+      throw TreeRepositoryException('Failed to report tree: $e',
+          code: 'unknown', originalException: e);
+    }
+  }
+
+  /// Delete a tree and all its posts
+  Future<void> deleteTree(String treeId) async {
+    print('[TreeRepository] Deleting tree $treeId...');
+    try {
+      // Delete all posts in the subcollection first
+      final postsSnapshot = await _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .get();
+      
+      final batch = _firestore.batch();
+      for (var doc in postsSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      
+      // Delete the tree document
+      batch.delete(_firestore.collection('trees').doc(treeId));
+      
+      await batch.commit();
+      print('[TreeRepository] ✅ Tree and posts deleted successfully');
+    } catch (e) {
+      print('[TreeRepository] ❌ Delete tree failed: $e');
+      throw TreeRepositoryException('Failed to delete tree: $e', code: 'unknown');
+    }
+  }
+
+  /// Delete a post from a tree
+  Future<void> deletePost(String treeId, String postId) async {
+    print('[TreeRepository] Deleting post $postId from tree $treeId...');
+    try {
+      await _firestore
+          .collection('trees')
+          .doc(treeId)
+          .collection('posts')
+          .doc(postId)
+          .delete();
+      print('[TreeRepository] ✅ Post deleted successfully');
+    } catch (e) {
+      print('[TreeRepository] ❌ Delete post failed: $e');
+      throw TreeRepositoryException('Failed to delete post: $e', code: 'unknown');
+    }
+  }
+
   /// Get all trees
   Stream<List<Tree>> getTrees() {
     return _firestore.collection('trees').snapshots().map((snapshot) {

@@ -6,11 +6,13 @@ import 'package:treesha/models/tree_filters.dart';
 class FilterDialog extends StatefulWidget {
   final TreeFilters initialFilters;
   final List<String> availableFruitTypes;
+  final bool isAdmin;
 
   const FilterDialog({
     super.key,
     required this.initialFilters,
     required this.availableFruitTypes,
+    this.isAdmin = false,
   });
 
   @override
@@ -23,6 +25,7 @@ class _FilterDialogState extends State<FilterDialog> {
   late Set<String> _selectedFruitTypes;
   late Set<String> _selectedStatusTypes;
   late TextEditingController _treeNameController;
+  late bool _showReportedOnly;
 
   final Map<String, String> _statusLabels = {
     AppConstants.statusApproved: 'Approved',
@@ -40,6 +43,7 @@ class _FilterDialogState extends State<FilterDialog> {
     _treeNameController = TextEditingController(
       text: widget.initialFilters.treeName,
     );
+    _showReportedOnly = widget.initialFilters.showReportedOnly;
   }
 
   @override
@@ -255,6 +259,20 @@ class _FilterDialogState extends State<FilterDialog> {
                   ),
               ],
             ),
+            if (widget.isAdmin) ...[
+              const Divider(height: 32),
+              CheckboxListTile(
+                title: const Text('Show Reported Only'),
+                subtitle: const Text('Filter trees flagged by users'),
+                value: _showReportedOnly,
+                onChanged: (value) {
+                  setState(() {
+                    _showReportedOnly = value ?? false;
+                  });
+                },
+                contentPadding: EdgeInsets.zero,
+              ),
+            ],
           ],
         ),
       ),
@@ -281,6 +299,7 @@ class _FilterDialogState extends State<FilterDialog> {
               fruitTypes: _selectedFruitTypes,
               statusTypes: _selectedStatusTypes,
               treeName: _treeNameController.text.trim(),
+              showReportedOnly: _showReportedOnly,
             );
             Navigator.of(context).pop(filters);
           },

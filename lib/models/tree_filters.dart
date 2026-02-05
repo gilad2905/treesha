@@ -4,6 +4,7 @@ class TreeFilters {
   final Set<String> fruitTypes; // Empty set means show all
   final Set<String> statusTypes; // Empty set means show all ('pending', 'approved', 'rejected')
   final String treeName; // Empty string means show all
+  final bool showReportedOnly; // For admins to see reported trees
 
   const TreeFilters({
     this.lastVerifiedAfter,
@@ -11,6 +12,7 @@ class TreeFilters {
     this.fruitTypes = const {},
     this.statusTypes = const {},
     this.treeName = '',
+    this.showReportedOnly = false,
   });
 
   /// Check if any filters are active
@@ -19,7 +21,8 @@ class TreeFilters {
       lastAddedAfter != null ||
       fruitTypes.isNotEmpty ||
       statusTypes.isNotEmpty ||
-      treeName.isNotEmpty;
+      treeName.isNotEmpty ||
+      showReportedOnly;
 
   /// Create a copy with some fields replaced
   TreeFilters copyWith({
@@ -28,6 +31,7 @@ class TreeFilters {
     Set<String>? fruitTypes,
     Set<String>? statusTypes,
     String? treeName,
+    bool? showReportedOnly,
   }) {
     return TreeFilters(
       lastVerifiedAfter: lastVerifiedAfter != null
@@ -39,6 +43,7 @@ class TreeFilters {
       fruitTypes: fruitTypes ?? this.fruitTypes,
       statusTypes: statusTypes ?? this.statusTypes,
       treeName: treeName ?? this.treeName,
+      showReportedOnly: showReportedOnly ?? this.showReportedOnly,
     );
   }
 

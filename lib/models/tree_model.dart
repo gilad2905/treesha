@@ -10,6 +10,7 @@ class Tree {
   final Timestamp createdAt;
   final List<String> upvotes;
   final List<String> downvotes;
+  final List<String> reported; // IDs of users who reported this tree
   final Timestamp? lastVerifiedAt; // Timestamp of last upvote
   final String status; // 'pending', 'approved', 'rejected'
 
@@ -25,6 +26,7 @@ class Tree {
     required this.createdAt,
     required this.upvotes,
     required this.downvotes,
+    this.reported = const [],
     this.lastVerifiedAt,
     required this.status,
   });
@@ -41,6 +43,7 @@ class Tree {
       createdAt: data['createdAt'] ?? Timestamp.now(),
       upvotes: List<String>.from(data['upvotes'] ?? []),
       downvotes: List<String>.from(data['downvotes'] ?? []),
+      reported: List<String>.from(data['reported'] ?? []),
       lastVerifiedAt: data['lastVerifiedAt'],
       status: data['status'] ?? 'pending',
     );

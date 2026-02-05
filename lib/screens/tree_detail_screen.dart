@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:treesha/l10n/app_localizations.dart';
 import 'package:treesha/models/tree_model.dart';
 import 'package:treesha/models/tree_post.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
@@ -31,10 +29,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   final TreeRepositoryNoConfirm _treeRepositoryNoConfirm =
       TreeRepositoryNoConfirm();
   User? _user;
+  List<String> _userRoles = ['user'];
 
   // Local state to track votes for immediate UI updates
   late List<String> _upvotes;
   late List<String> _downvotes;
+  late List<String> _reported;
 
   // Posts state
   List<TreePost> _posts = [];
@@ -46,9 +46,10 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   void initState() {
     super.initState();
 
-    // Initialize local vote state from the tree
+    // Initialize local state from the tree
     _upvotes = List.from(widget.tree.upvotes);
     _downvotes = List.from(widget.tree.downvotes);
+    _reported = List.from(widget.tree.reported);
 
     // Debug: Check lastVerifiedAt
     debugPrint('[TreeDetailScreen] Tree: ${widget.tree.name}');
@@ -57,10 +58,16 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     );
     debugPrint('[TreeDetailScreen] upvotes: ${widget.tree.upvotes.length}');
 
-    _authService.user.listen((user) {
+    _authService.user.listen((user) async {
+      if (!mounted) return;
+      List<String> roles = ['user'];
+      if (user != null) {
+        roles = await _authService.getUserRoles(user.uid);
+      }
       if (mounted) {
         setState(() {
           _user = user;
+          _userRoles = roles;
         });
       }
     });
@@ -172,7 +179,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => _AddPostDialog(),
+      builder: (dialogContext) => _AddPostDialog(),
     );
 
     if (result != null) {
@@ -234,9 +241,16 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   void _showReportDialog() {
+    if (_user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You need to be logged in to report')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Report Content'),
           content: const Text(
@@ -244,19 +258,34 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // TODO: Implement actual reporting logic
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Report submitted. Thank you!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                try {
+                  await _treeRepository.reportTree(widget.tree.id, _user!.uid);
+                  if (mounted) {
+                    setState(() {
+                      if (!_reported.contains(_user!.uid)) {
+                        _reported.add(_user!.uid);
+                      }
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Report submitted. Thank you!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error reporting: $e')),
+                    );
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('Report'),
@@ -267,9 +296,76 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     );
   }
 
+  void _showDeleteTreeDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Tree'),
+        content: const Text(
+          'Are you sure you want to delete this tree and all its posts? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _deleteTree();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteTree() async {
+    try {
+      await _treeRepository.deleteTree(widget.tree.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tree deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pop(true); // Return true to indicate deletion
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete tree: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deletePost(String postId) async {
+    try {
+      await _treeRepository.deletePost(widget.tree.id, postId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Post deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadPosts(); // Refresh posts list
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete post: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     bool isUpvoted = _user != null && _upvotes.contains(_user!.uid);
     bool isDownvoted = _user != null && _downvotes.contains(_user!.uid);
 
@@ -278,9 +374,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
         title: Text(widget.tree.name),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
+          // Delete button for admin or owner
+          if (_user != null &&
+              (_userRoles.contains('admin') || _user!.uid == widget.tree.userId))
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: 'Delete tree',
+              onPressed: _showDeleteTreeDialog,
+            ),
           // Report button
           IconButton(
-            icon: const Icon(Icons.flag),
+            icon: const Icon(Icons.flag, color: Colors.white),
             tooltip: 'Report this content',
             onPressed: _showReportDialog,
           ),
@@ -693,6 +797,35 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     ],
                   ),
                 ),
+                // Delete post button for admin or owner
+                if (_user != null &&
+                    (_userRoles.contains('admin') || _user!.uid == post.userId))
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Post'),
+                          content: const Text('Are you sure you want to delete this post?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _deletePost(post.id);
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             // Comment

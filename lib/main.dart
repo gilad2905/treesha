@@ -1,8 +1,5 @@
-import 'dart:ui' as ui;
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:treesha/services/firebase_auth_service.dart';
 
@@ -28,7 +25,6 @@ import 'package:treesha/services/firebase_service.dart';
 import 'package:treesha/services/firestore_config.dart';
 import 'package:treesha/services/tree_repository.dart';
 import 'package:treesha/services/tree_repository_no_confirm.dart';
-import 'package:treesha/services/raw_firestore_test.dart';
 import 'package:treesha/services/firestore_diagnostic.dart';
 import 'package:treesha/services/version_check_service.dart';
 
@@ -258,7 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       barrierDismissible: !forceUpdate,
-      builder: (context) => WillPopScope(
+      builder: (dialogContext) => WillPopScope(
         onWillPop: () async => !forceUpdate,
         child: AlertDialog(
           title: const Text('Update Required'),
@@ -281,7 +277,7 @@ class _MyHomePageState extends State<MyHomePage> {
           actions: [
             if (!forceUpdate)
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(dialogContext).pop(),
                 child: const Text('Later'),
               ),
             ElevatedButton(
@@ -349,6 +345,7 @@ class _MyHomePageState extends State<MyHomePage> {
           createdAt: Timestamp.fromDate(createdAtDateTime),
           upvotes: List<String>.from(data['upvotes'] as List),
           downvotes: List<String>.from(data['downvotes'] as List),
+          reported: List<String>.from(data['reported'] as List? ?? []),
           lastVerifiedAt: lastVerifiedAt,
           status: data['status'] as String? ?? 'pending',
         );
@@ -398,6 +395,13 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         }
 
+        // Filter by reported (Admins only)
+        if (_filters.showReportedOnly) {
+          if (tree.reported.isEmpty) {
+            return false;
+          }
+        }
+
         return true; // Passed all filters
       }).toList();
 
@@ -433,13 +437,16 @@ class _MyHomePageState extends State<MyHomePage> {
           markerId: MarkerId(tree.id),
           position: LatLng(tree.position.latitude, tree.position.longitude),
           icon: icon, // Use custom icon or default
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => TreeDetailScreen(tree: tree),
               ),
             );
+            if (result == true) {
+              _loadTrees(); // Refresh if tree was deleted
+            }
           },
         ),
       );
@@ -659,10 +666,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final result = await showDialog<TreeFilters>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return FilterDialog(
           initialFilters: _filters,
           availableFruitTypes: availableFruitTypes,
+          isAdmin: _userRoles.contains('admin'),
         );
       },
     );
@@ -740,7 +748,7 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       barrierDismissible: false, // Prevent dismissal by tapping outside
-      builder: (context) {
+      builder: (dialogContext) {
         return AddTreeDialog(
           onAdd: (name, fruitType, images, comment) async {
             // Set saving state to disable map interactions

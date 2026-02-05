@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
@@ -136,6 +135,73 @@ void main() {
         ),
         throwsA(isA<ArgumentError>()),
       );
+    });
+
+    test('reportTree adds user to reported list', () async {
+      // Arrange
+      final treeRef = await fakeFirestore.collection('trees').add({
+        'name': 'Report Test Tree',
+        'reported': <String>[],
+      });
+
+      // Act
+      await repository.reportTree(treeRef.id, 'reporter_1');
+
+      // Assert
+      final doc = await treeRef.get();
+      final reported = List<String>.from(doc.data()!['reported']);
+      expect(reported, contains('reporter_1'));
+    });
+
+    test('reportTree does not add same user twice', () async {
+      // Arrange
+      final treeRef = await fakeFirestore.collection('trees').add({
+        'name': 'Report Test Tree',
+        'reported': ['reporter_1'],
+      });
+
+      // Act
+      await repository.reportTree(treeRef.id, 'reporter_1');
+
+      // Assert
+      final doc = await treeRef.get();
+      final reported = List<String>.from(doc.data()!['reported']);
+      expect(reported.length, 1);
+    });
+
+    test('deleteTree removes tree and its posts', () async {
+      // Arrange
+      final treeRef = await fakeFirestore.collection('trees').add({
+        'name': 'Delete Test Tree',
+      });
+      final postRef = await treeRef.collection('posts').add({
+        'comment': 'Test Post',
+      });
+
+      // Act
+      await repository.deleteTree(treeRef.id);
+
+      // Assert
+      final treeDoc = await treeRef.get();
+      expect(treeDoc.exists, false);
+      final postDoc = await postRef.get();
+      expect(postDoc.exists, false);
+    });
+
+    test('deletePost removes only the specified post', () async {
+      // Arrange
+      final treeRef = await fakeFirestore.collection('trees').add({
+        'name': 'Delete Post Test Tree',
+      });
+      final post1Ref = await treeRef.collection('posts').add({'comment': 'Post 1'});
+      final post2Ref = await treeRef.collection('posts').add({'comment': 'Post 2'});
+
+      // Act
+      await repository.deletePost(treeRef.id, post1Ref.id);
+
+      // Assert
+      expect((await post1Ref.get()).exists, false);
+      expect((await post2Ref.get()).exists, true);
     });
   });
 

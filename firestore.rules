@@ -13,83 +13,69 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.contains('admin');
+    }
+
     // App configuration (version requirements, etc.)
     match /app_config/{configId} {
-      // Anyone can read config (needed for version checking)
       allow read: if true;
-
-      // Only admins can write config (you'll manage this in Firebase Console)
       allow write: if false;
     }
 
     // Trees collection rules
     match /trees/{treeId} {
-      // Anyone can read trees
       allow read: if true;
 
-      // Only authenticated users can create trees
-      // and they must set their own userId
       allow create: if isAuthenticated()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'name', 'fruitType', 'position', 'imageUrl', 'createdAt', 'upvotes', 'downvotes'])
-                    && request.resource.data.upvotes is list
-                    && request.resource.data.downvotes is list;
+                    && request.resource.data.userId == request.auth.uid;
 
-      // Allow updates for voting (upvotes/downvotes) by authenticated users
-      // Prevent modification of core fields (userId, name, fruitType, position, createdAt)
-      // Only allow changes to upvotes/downvotes arrays
-      allow update: if isAuthenticated()
-                    && request.resource.data.userId == resource.data.userId
-                    && request.resource.data.name == resource.data.name
-                    && request.resource.data.fruitType == resource.data.fruitType
-                    && request.resource.data.position == resource.data.position
-                    && request.resource.data.createdAt == resource.data.createdAt
-                    && request.resource.data.imageUrl == resource.data.imageUrl
-                    
-                    // Phase 5: Security Rules
-                    // 1. Only allow upvotes from non-submitters (Creator cannot vote on their own tree)
-                    && resource.data.userId != request.auth.uid
-                    
-                    // 2. Status logic: Only allow status changes via upvote logic
-                    && (
-                      // Status doesn't change
-                      request.resource.data.status == resource.data.status
-                      ||
-                      // OR Status changes from pending to approved AND upvotes >= 3 (hardcoded for now as per plan)
-                      (resource.data.status == 'pending' 
-                       && request.resource.data.status == 'approved' 
-                       && request.resource.data.upvotes.size() >= 3)
-                    );
+      allow update: if isAuthenticated() && (
+                    isAdmin() 
+                    || 
+                    (
+                      // Core fields must not change
+                      request.resource.data.userId == resource.data.userId
+                      && request.resource.data.name == resource.data.name
+                      && request.resource.data.fruitType == resource.data.fruitType
+                      && request.resource.data.position == resource.data.position
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.imageUrl == resource.data.imageUrl
+                      
+                      && (
+                        // Case 1: Reporting (anyone authenticated can report)
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reported'])
+                        ||
+                        // Case 2: Voting (cannot be submitter)
+                        (resource.data.userId != request.auth.uid && 
+                         request.resource.data.diff(resource.data).affectedKeys().hasAny(['upvotes', 'downvotes', 'lastVerifiedAt', 'status']))
+                      )
+                    )
+                  );
 
-      // Only the tree creator can delete their tree
-      allow delete: if isOwner(resource.data.userId);
+      // Only the tree creator or an admin can delete their tree
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
 
       // Posts subcollection rules
       match /posts/{postId} {
-        // Anyone can read posts (even unauthenticated users)
         allow read: if true;
 
-        // Only authenticated users can create posts
-        // and they must set their own userId
         allow create: if isAuthenticated()
-                      && request.resource.data.userId == request.auth.uid
-                      && request.resource.data.keys().hasAll(['userId', 'userName', 'imageUrls', 'comment', 'createdAt'])
-                      && request.resource.data.imageUrls is list;
+                      && request.resource.data.userId == request.auth.uid;
 
-        // Only post creator can update their own post
-        allow update: if isOwner(resource.data.userId);
+        allow update: if isOwner(resource.data.userId) || isAdmin();
 
-        // Only post creator can delete their own post
-        allow delete: if isOwner(resource.data.userId);
+        // Post creator or admin can delete
+        allow delete: if isOwner(resource.data.userId) || isAdmin();
       }
     }
 
     // Users collection rules
     match /users/{userId} {
-      // Only the user themselves can create or update their document
       allow create, update: if isAuthenticated() && request.auth.uid == userId;
-      // Only the user can read their own document
-      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
     }
   }
 }
