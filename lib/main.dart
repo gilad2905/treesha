@@ -676,8 +676,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _onMapTapped(LatLng latLng) {
+  void _onMapTapped(LatLng latLng) async {
     if (!mounted) return; // Add mounted check
+
+    if (_mapController == null) return;
+
+    final zoomLevel = await _mapController!.getZoomLevel();
+    const double maxZoomThreshold = 19.0;
+
+    if (zoomLevel < maxZoomThreshold) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please zoom in fully to the exact location of the tree before adding'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
 
     debugPrint('[MapTap] Tapped at: ${latLng.latitude}, ${latLng.longitude}');
 
@@ -685,29 +702,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Check if user is logged in
     if (_user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.pleaseSignInToAddTree),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.pleaseSignInToAddTree),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
       return;
     }
 
-    _showAddTreeDialog(
-      Position(
-        latitude: latLng.latitude,
-        longitude: latLng.longitude,
-        timestamp: DateTime.now(),
-        accuracy: 0.0,
-        altitude: 0.0,
-        altitudeAccuracy: 0.0,
-        heading: 0.0,
-        headingAccuracy: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
-      ),
-    );
+    if (mounted) {
+      _showAddTreeDialog(
+        Position(
+          latitude: latLng.latitude,
+          longitude: latLng.longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          altitudeAccuracy: 0.0,
+          heading: 0.0,
+          headingAccuracy: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+        ),
+      );
+    }
   }
 
   void _showAddTreeDialog(Position position) {
@@ -860,13 +881,28 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    try {
-      final position = await _firebaseService.getCurrentLocation();
-      if (!mounted) return; // Add mounted check
-      _showAddTreeDialog(position);
-    } catch (e) {
-      // Log error if necessary, but remove print for production
-      debugPrint('[Main] Failed to get location: $e');
+    if (_mapController == null) return;
+
+    final zoomLevel = await _mapController!.getZoomLevel();
+    // Usually max zoom is around 20-21 on Google Maps
+    const double maxZoomThreshold = 19.0; 
+
+    if (!mounted) return;
+
+    if (zoomLevel < maxZoomThreshold) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please zoom in fully to the exact location of the tree'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Now long-click on the exact position of the tree to add it'),
+          duration: Duration(seconds: 4),
+        ),
+      );
     }
   }
 }
