@@ -272,9 +272,22 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
 
                       setState(() => _isLoading = true);
                       try {
+                        String finalFruitType = _selectedFruitType ?? _fruitTypeController.text;
+                        
+                        // If it's a custom fruit type (not selected from list), format it
+                        if (_selectedFruitType == null) {
+                          // Remove symbols and format to CamelCase
+                          finalFruitType = finalFruitType
+                              .replaceAll(RegExp(r'[^a-zA-Z0-6\s]'), '') // Remove symbols
+                              .split(' ')
+                              .where((word) => word.isNotEmpty)
+                              .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+                              .join(' ');
+                        }
+
                         final result = await widget.onAdd(
                           _nameController.text,
-                          _selectedFruitType ?? _fruitTypeController.text,
+                          finalFruitType,
                           _images,
                           _commentController.text,
                         );

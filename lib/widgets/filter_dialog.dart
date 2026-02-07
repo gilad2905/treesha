@@ -26,6 +26,7 @@ class _FilterDialogState extends State<FilterDialog> {
   late Set<String> _selectedStatusTypes;
   late TextEditingController _treeNameController;
   late bool _showReportedOnly;
+  late bool _showUnknownFruitsOnly;
 
   final Map<String, String> _statusLabels = {
     AppConstants.statusApproved: 'Approved',
@@ -44,6 +45,7 @@ class _FilterDialogState extends State<FilterDialog> {
       text: widget.initialFilters.treeName,
     );
     _showReportedOnly = widget.initialFilters.showReportedOnly;
+    _showUnknownFruitsOnly = widget.initialFilters.showUnknownFruitsOnly;
   }
 
   @override
@@ -272,6 +274,17 @@ class _FilterDialogState extends State<FilterDialog> {
                 },
                 contentPadding: EdgeInsets.zero,
               ),
+              CheckboxListTile(
+                title: const Text('Show Unknown Fruits Only'),
+                subtitle: const Text('Filter fruits not in the official list'),
+                value: _showUnknownFruitsOnly,
+                onChanged: (value) {
+                  setState(() {
+                    _showUnknownFruitsOnly = value ?? false;
+                  });
+                },
+                contentPadding: EdgeInsets.zero,
+              ),
             ],
           ],
         ),
@@ -300,6 +313,7 @@ class _FilterDialogState extends State<FilterDialog> {
               statusTypes: _selectedStatusTypes,
               treeName: _treeNameController.text.trim(),
               showReportedOnly: _showReportedOnly,
+              showUnknownFruitsOnly: _showUnknownFruitsOnly,
             );
             Navigator.of(context).pop(filters);
           },

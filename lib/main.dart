@@ -28,6 +28,8 @@ import 'package:treesha/services/tree_repository_no_confirm.dart';
 import 'package:treesha/services/firestore_diagnostic.dart';
 import 'package:treesha/services/version_check_service.dart';
 
+import 'package:treesha/models/fruit_model.dart';
+import 'package:treesha/services/fruit_service.dart';
 import 'package:treesha/models/tree_model.dart';
 
 import 'package:treesha/widgets/add_tree_dialog.dart';
@@ -159,6 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoadingTrees = false; // Track if trees are being loaded
   Map<String, BitmapDescriptor> _fruitIcons = {}; // Store loaded SVG icons
   BitmapDescriptor? _defaultTreeIcon; // Default SVG icon
+  List<Fruit> _allFruits = []; // Store official fruit list
 
 
   @override
@@ -175,12 +178,15 @@ class _MyHomePageState extends State<MyHomePage> {
     _checkAppVersion();
 
     _determinePosition();
-    _loadTrees(); // Load trees using REST API
+    _loadOfficialFruits().then((_) => _loadTrees()); // Load official list then trees
     _loadFruitIcons(); // Load fruit SVG icons
 
     _authService.user.listen((user) async {
       if (!mounted) return;
       
+      // Detect if the user actually changed (login, logout, or account switch)
+      final bool userChanged = _user?.uid != user?.uid;
+
       List<String> roles = ['user'];
       if (user != null) {
         roles = await _authService.getUserRoles(user.uid);
@@ -190,9 +196,28 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _user = user;
           _userRoles = roles;
+
+          // Clear all filters on login or logout for a clean experience
+          if (userChanged) {
+            _filters = TreeFilters.empty;
+            _loadTrees();
+          }
         });
       }
     });
+  }
+
+  Future<void> _loadOfficialFruits() async {
+    try {
+      final fruits = await FruitService.loadFruits();
+      if (mounted) {
+        setState(() {
+          _allFruits = fruits;
+        });
+      }
+    } catch (e) {
+      debugPrint('[MyHomePage] Error loading official fruits: $e');
+    }
   }
 
   Future<void> _loadFruitIcons() async {
@@ -398,6 +423,16 @@ class _MyHomePageState extends State<MyHomePage> {
         // Filter by reported (Admins only)
         if (_filters.showReportedOnly) {
           if (tree.reported.isEmpty) {
+            return false;
+          }
+        }
+
+        // Filter by unknown fruits (Admins only)
+        if (_filters.showUnknownFruitsOnly) {
+          final isKnown = _allFruits.any((f) {
+            return f.type.toLowerCase() == tree.fruitType.toLowerCase();
+          });
+          if (isKnown) {
             return false;
           }
         }
@@ -696,7 +731,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Please zoom in fully to the exact location of the tree before adding'),
+            content: Text('Zoom closer plz => for better accuracy 🔎'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -900,7 +935,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (zoomLevel < maxZoomThreshold) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please zoom in fully to the exact location of the tree'),
+          content: Text('Zoom closer plz => for better accuracy 🔎'),
           duration: Duration(seconds: 3),
         ),
       );

@@ -16,7 +16,7 @@ service cloud.firestore {
     // Helper function to check if user is admin
     function isAdmin() {
       return isAuthenticated() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.contains('admin');
+             ('admin' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles);
     }
 
     // App configuration (version requirements, etc.)
