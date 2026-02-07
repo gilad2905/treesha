@@ -469,6 +469,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Photos/Comment'**
   String get addCommentPhotos;
+
+  /// Message to zoom in closer for better accuracy
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom closer for better accuracy 🔎'**
+  String get zoomCloser;
+
+  /// Instruction to long-click to add a tree
+  ///
+  /// In en, this message translates to:
+  /// **'Long-click on the exact position of the tree to add it'**
+  String get longClickToAdd;
+
+  /// Title for update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Update Required'**
+  String get updateRequired;
+
+  /// Button to update the app
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// Button to dismiss update dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// Default username for anonymous users
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous'**
+  String get anonymous;
+
+  /// Label for current version
+  ///
+  /// In en, this message translates to:
+  /// **'Current version: {version}'**
+  String currentVersionLabel(String version);
+
+  /// Label for minimum version
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum version: {version}'**
+  String minVersionLabel(String version);
+
+  /// Error message when tree addition fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add tree: {error}'**
+  String failedToAddTree(String error);
+
+  /// Error message when tree saving fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save tree. Please try again.'**
+  String get failedToSaveTree;
+
+  /// Generic error message
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred: {error}'**
+  String unexpectedError(String error);
+
+  /// Message to wait during saving
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait for the tree to be saved'**
+  String get pleaseWait;
+
+  /// Message when no fruit types are found
+  ///
+  /// In en, this message translates to:
+  /// **'No fruit types available'**
+  String get noFruitTypesAvailable;
+
+  /// Status filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusFilter;
+
+  /// Last verified after filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Last Verified After'**
+  String get lastVerifiedAfter;
+
+  /// Message when no date filter is selected
+  ///
+  /// In en, this message translates to:
+  /// **'No date filter'**
+  String get noDateFilter;
+
+  /// Added after filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Added After'**
+  String get addedAfter;
+
+  /// Show reported only filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Show Reported Only'**
+  String get showReportedOnly;
+
+  /// Subtitle for reported trees filter
+  ///
+  /// In en, this message translates to:
+  /// **'Filter trees flagged by users'**
+  String get filterReportedSubtitle;
+
+  /// Show unknown fruits only filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Show Unknown Fruits Only'**
+  String get showUnknownFruitsOnly;
+
+  /// Subtitle for unknown fruits filter
+  ///
+  /// In en, this message translates to:
+  /// **'Filter fruits not in the official list'**
+  String get filterUnknownFruitsSubtitle;
+
+  /// Message to log in to add photos
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be logged in to add photos or comments'**
+  String get loginToAddPhotos;
+
+  /// Success message when post is added
+  ///
+  /// In en, this message translates to:
+  /// **'Post added successfully'**
+  String get postAddedSuccessfully;
+
+  /// Message to log in to report content
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be logged in to report'**
+  String get loginToReport;
+
+  /// Delete tree button text
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Tree'**
+  String get deleteTree;
+
+  /// Confirmation message for tree deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this tree and all its posts? This action cannot be undone.'**
+  String get deleteTreeConfirmation;
+
+  /// Success message when tree is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Tree deleted successfully'**
+  String get treeDeletedSuccessfully;
+
+  /// Success message when post is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Post deleted successfully'**
+  String get postDeletedSuccessfully;
+
+  /// Tooltip for delete tree button
+  ///
+  /// In en, this message translates to:
+  /// **'Delete tree'**
+  String get deleteTreeTooltip;
+
+  /// Tooltip for report button
+  ///
+  /// In en, this message translates to:
+  /// **'Report this content'**
+  String get reportTooltip;
+
+  /// Message to log in to verify trees
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be logged in to verify trees'**
+  String get loginToVerify;
+
+  /// Message to log in to unverify trees
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be logged in to unverify trees'**
+  String get loginToUnverify;
+
+  /// Label for added date
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String addedDate(String date);
+
+  /// Label for last verified date
+  ///
+  /// In en, this message translates to:
+  /// **'Last verified: {date}'**
+  String lastVerifiedDate(String date);
+
+  /// Message when there are no posts
+  ///
+  /// In en, this message translates to:
+  /// **'No photos or comments yet'**
+  String get noPhotosOrComments;
+
+  /// Encouragement to add the first post
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to share!'**
+  String get beTheFirstToShare;
+
+  /// Delete post button text
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Post'**
+  String get deletePost;
+
+  /// Confirmation message for post deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this post?'**
+  String get deletePostConfirmation;
+
+  /// Message while posting content
+  ///
+  /// In en, this message translates to:
+  /// **'Posting...'**
+  String get posting;
 }
 
 class _AppLocalizationsDelegate

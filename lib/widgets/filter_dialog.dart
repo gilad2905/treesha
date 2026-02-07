@@ -92,9 +92,9 @@ class _FilterDialogState extends State<FilterDialog> {
             ),
             const SizedBox(height: 8),
             if (widget.availableFruitTypes.isEmpty)
-              const Text(
-                'No fruit types available',
-                style: TextStyle(
+              Text(
+                l10n.noFruitTypesAvailable,
+                style: const TextStyle(
                   color: Colors.grey,
                   fontStyle: FontStyle.italic,
                 ),
@@ -138,7 +138,7 @@ class _FilterDialogState extends State<FilterDialog> {
 
             // Status Filter
             Text(
-              'Status',
+              l10n.statusFilter,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -157,7 +157,7 @@ class _FilterDialogState extends State<FilterDialog> {
 
             // Last Verified Date Filter
             Text(
-              'Last Verified After',
+              l10n.lastVerifiedAfter,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -168,7 +168,7 @@ class _FilterDialogState extends State<FilterDialog> {
                 Expanded(
                   child: Text(
                     _lastVerifiedAfter == null
-                        ? 'No date filter'
+                        ? l10n.noDateFilter
                         : _formatDate(_lastVerifiedAfter!),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
@@ -204,7 +204,7 @@ class _FilterDialogState extends State<FilterDialog> {
 
             // Last Added Date Filter
             Text(
-              'Added After',
+              l10n.addedAfter,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -215,7 +215,7 @@ class _FilterDialogState extends State<FilterDialog> {
                 Expanded(
                   child: Text(
                     _lastAddedAfter == null
-                        ? 'No date filter'
+                        ? l10n.noDateFilter
                         : _formatDate(_lastAddedAfter!),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
@@ -250,8 +250,8 @@ class _FilterDialogState extends State<FilterDialog> {
             if (widget.isAdmin) ...[
               const Divider(height: 32),
               CheckboxListTile(
-                title: const Text('Show Reported Only'),
-                subtitle: const Text('Filter trees flagged by users'),
+                title: Text(l10n.showReportedOnly),
+                subtitle: Text(l10n.filterReportedSubtitle),
                 value: _showReportedOnly,
                 onChanged: (value) {
                   setState(() {
@@ -261,8 +261,8 @@ class _FilterDialogState extends State<FilterDialog> {
                 contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
-                title: const Text('Show Unknown Fruits Only'),
-                subtitle: const Text('Filter fruits not in the official list'),
+                title: Text(l10n.showUnknownFruitsOnly),
+                subtitle: Text(l10n.filterUnknownFruitsSubtitle),
                 value: _showUnknownFruitsOnly,
                 onChanged: (value) {
                   setState(() {

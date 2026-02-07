@@ -224,4 +224,138 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addCommentPhotos => 'Add Photos/Comment';
+
+  @override
+  String get zoomCloser => 'Zoom closer for better accuracy 🔎';
+
+  @override
+  String get longClickToAdd =>
+      'Long-click on the exact position of the tree to add it';
+
+  @override
+  String get updateRequired => 'Update Required';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get anonymous => 'Anonymous';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'Current version: $version';
+  }
+
+  @override
+  String minVersionLabel(String version) {
+    return 'Minimum version: $version';
+  }
+
+  @override
+  String failedToAddTree(String error) {
+    return 'Failed to add tree: $error';
+  }
+
+  @override
+  String get failedToSaveTree => 'Failed to save tree. Please try again.';
+
+  @override
+  String unexpectedError(String error) {
+    return 'An unexpected error occurred: $error';
+  }
+
+  @override
+  String get pleaseWait => 'Please wait for the tree to be saved';
+
+  @override
+  String get noFruitTypesAvailable => 'No fruit types available';
+
+  @override
+  String get statusFilter => 'Status';
+
+  @override
+  String get lastVerifiedAfter => 'Last Verified After';
+
+  @override
+  String get noDateFilter => 'No date filter';
+
+  @override
+  String get addedAfter => 'Added After';
+
+  @override
+  String get showReportedOnly => 'Show Reported Only';
+
+  @override
+  String get filterReportedSubtitle => 'Filter trees flagged by users';
+
+  @override
+  String get showUnknownFruitsOnly => 'Show Unknown Fruits Only';
+
+  @override
+  String get filterUnknownFruitsSubtitle =>
+      'Filter fruits not in the official list';
+
+  @override
+  String get loginToAddPhotos =>
+      'You need to be logged in to add photos or comments';
+
+  @override
+  String get postAddedSuccessfully => 'Post added successfully';
+
+  @override
+  String get loginToReport => 'You need to be logged in to report';
+
+  @override
+  String get deleteTree => 'Delete Tree';
+
+  @override
+  String get deleteTreeConfirmation =>
+      'Are you sure you want to delete this tree and all its posts? This action cannot be undone.';
+
+  @override
+  String get treeDeletedSuccessfully => 'Tree deleted successfully';
+
+  @override
+  String get postDeletedSuccessfully => 'Post deleted successfully';
+
+  @override
+  String get deleteTreeTooltip => 'Delete tree';
+
+  @override
+  String get reportTooltip => 'Report this content';
+
+  @override
+  String get loginToVerify => 'You need to be logged in to verify trees';
+
+  @override
+  String get loginToUnverify => 'You need to be logged in to unverify trees';
+
+  @override
+  String addedDate(String date) {
+    return 'Added $date';
+  }
+
+  @override
+  String lastVerifiedDate(String date) {
+    return 'Last verified: $date';
+  }
+
+  @override
+  String get noPhotosOrComments => 'No photos or comments yet';
+
+  @override
+  String get beTheFirstToShare => 'Be the first to share!';
+
+  @override
+  String get deletePost => 'Delete Post';
+
+  @override
+  String get deletePostConfirmation =>
+      'Are you sure you want to delete this post?';
+
+  @override
+  String get posting => 'Posting...';
 }

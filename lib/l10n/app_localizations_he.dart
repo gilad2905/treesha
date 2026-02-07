@@ -223,4 +223,135 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get addCommentPhotos => 'הוסף תמונות/הערה';
+
+  @override
+  String get zoomCloser => 'אנא התקרב במפה לדיוק מירבי 🔎';
+
+  @override
+  String get longClickToAdd => 'להוספה לחץ לחיצה ארוכה על המיקום המדויק';
+
+  @override
+  String get updateRequired => 'נדרש עדכון גרסה';
+
+  @override
+  String get updateNow => 'עדכן עכשיו';
+
+  @override
+  String get later => 'אחר כך';
+
+  @override
+  String get anonymous => 'אנונימי';
+
+  @override
+  String currentVersionLabel(String version) {
+    return 'גרסה נוכחית: $version';
+  }
+
+  @override
+  String minVersionLabel(String version) {
+    return 'גרסת מינימום: $version';
+  }
+
+  @override
+  String failedToAddTree(String error) {
+    return 'הוספת העץ נכשלה: $error';
+  }
+
+  @override
+  String get failedToSaveTree => 'שמירת העץ נכשלה. אנא נסה שוב.';
+
+  @override
+  String unexpectedError(String error) {
+    return 'אירעה שגיאה בלתי צפויה: $error';
+  }
+
+  @override
+  String get pleaseWait => 'אנא המתן עד לשמירת העץ';
+
+  @override
+  String get noFruitTypesAvailable => 'אין סוגי פירות זמינים';
+
+  @override
+  String get statusFilter => 'סטטוס';
+
+  @override
+  String get lastVerifiedAfter => 'אומת לאחרונה אחרי';
+
+  @override
+  String get noDateFilter => 'אין סינון לפי תאריך';
+
+  @override
+  String get addedAfter => 'נוסף אחרי';
+
+  @override
+  String get showReportedOnly => 'הצג מדווחים בלבד';
+
+  @override
+  String get filterReportedSubtitle => 'סנן עצים שדווחו על ידי משתמשים';
+
+  @override
+  String get showUnknownFruitsOnly => 'הצג פירות לא ידועים בלבד';
+
+  @override
+  String get filterUnknownFruitsSubtitle => 'סנן פירות שאינם ברשימה הרשמית';
+
+  @override
+  String get loginToAddPhotos => 'עליך להתחבר כדי להוסיף תמונות או הערות';
+
+  @override
+  String get postAddedSuccessfully => 'הפוסט נוסף בהצלחה';
+
+  @override
+  String get loginToReport => 'עליך להתחבר כדי לדווח';
+
+  @override
+  String get deleteTree => 'מחק עץ';
+
+  @override
+  String get deleteTreeConfirmation =>
+      'האם אתה בטוח שברצונך למחוק את העץ ואת כל הפוסטים שלו? פעולה זו אינה ניתנת לביטול.';
+
+  @override
+  String get treeDeletedSuccessfully => 'העץ נמחק בהצלחה';
+
+  @override
+  String get postDeletedSuccessfully => 'הפוסט נמחק בהצלחה';
+
+  @override
+  String get deleteTreeTooltip => 'מחק עץ';
+
+  @override
+  String get reportTooltip => 'דווח על תוכן זה';
+
+  @override
+  String get loginToVerify => 'עליך להתחבר כדי לאמת עצים';
+
+  @override
+  String get loginToUnverify => 'עליך להתחבר כדי לבטל אימות עצים';
+
+  @override
+  String addedDate(String date) {
+    return 'נוסף בתאריך $date';
+  }
+
+  @override
+  String lastVerifiedDate(String date) {
+    return 'אומת לאחרונה: $date';
+  }
+
+  @override
+  String get noPhotosOrComments => 'אין עדיין תמונות או הערות';
+
+  @override
+  String get beTheFirstToShare => 'היה הראשון לשתף!';
+
+  @override
+  String get deletePost => 'מחק פוסט';
+
+  @override
+  String get deletePostConfirmation =>
+      'האם אתה בטוח שברצונך למחוק את הפוסט הזה?';
+
+  @override
+  String get posting => 'מעלה...';
 }

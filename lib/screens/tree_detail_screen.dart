@@ -171,12 +171,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   Future<void> _showAddPostDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You need to be logged in to add photos or comments'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(l10n.loginToAddPhotos),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -197,6 +198,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   Future<void> _addPost(List<XFile> images, String comment) async {
+    final l10n = AppLocalizations.of(context)!;
     if (!mounted) return;
     setState(() {
       _isAddingPost = true;
@@ -212,7 +214,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
       await _treeRepositoryNoConfirm.addPostToTree(widget.tree.id, {
         'userId': _user!.uid,
-        'userName': _user!.displayName ?? 'Anonymous',
+        'userName': _user!.displayName ?? l10n.anonymous,
         'imageUrls': imageUrls,
         'comment': comment,
       });
@@ -222,8 +224,8 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Post added successfully'),
+        SnackBar(
+          content: Text(l10n.postAddedSuccessfully),
           backgroundColor: Colors.green,
         ),
       );
@@ -232,7 +234,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add post: $e'),
+            content: Text('${l10n.somethingWentWrong}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -250,7 +252,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     final l10n = AppLocalizations.of(context)!;
     if (_user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You need to be logged in to report')),
+        SnackBar(content: Text(l10n.loginToReport)),
       );
       return;
     }
@@ -287,7 +289,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error reporting: $e')),
+                      SnackBar(content: Text('${l10n.somethingWentWrong}: $e')),
                     );
                   }
                 }
@@ -302,17 +304,16 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   void _showDeleteTreeDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Tree'),
-        content: const Text(
-          'Are you sure you want to delete this tree and all its posts? This action cannot be undone.',
-        ),
+        title: Text(l10n.deleteTree),
+        content: Text(l10n.deleteTreeConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -320,7 +321,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               _deleteTree();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(l10n.deleteTree),
           ),
         ],
       ),
@@ -328,12 +329,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   Future<void> _deleteTree() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       await _treeRepository.deleteTree(widget.tree.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tree deleted successfully'),
+          SnackBar(
+            content: Text(l10n.treeDeletedSuccessfully),
             backgroundColor: Colors.green,
           ),
         );
@@ -342,19 +344,20 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete tree: $e')),
+          SnackBar(content: Text('${l10n.somethingWentWrong}: $e')),
         );
       }
     }
   }
 
   Future<void> _deletePost(String postId) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       await _treeRepository.deletePost(widget.tree.id, postId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post deleted successfully'),
+          SnackBar(
+            content: Text(l10n.postDeletedSuccessfully),
             backgroundColor: Colors.green,
           ),
         );
@@ -363,7 +366,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete post: $e')),
+          SnackBar(content: Text('${l10n.somethingWentWrong}: $e')),
         );
       }
     }
@@ -373,6 +376,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   Widget build(BuildContext context) {
     bool isUpvoted = _user != null && _upvotes.contains(_user!.uid);
     bool isDownvoted = _user != null && _downvotes.contains(_user!.uid);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
@@ -382,12 +386,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
           // Share button
           IconButton(
             icon: const Icon(Icons.share, color: Colors.white),
-            tooltip: AppLocalizations.of(context)!.share,
+            tooltip: l10n.share,
             onPressed: () {
               final fruit = (Localizations.localeOf(context).languageCode == 'he' && _fruitTypeHe != null)
                   ? _fruitTypeHe!
                   : widget.tree.fruitType;
-              final shareText = AppLocalizations.of(context)!.shareText(fruit);
+              final shareText = l10n.shareText(fruit);
               final lat = widget.tree.position.latitude;
               final lng = widget.tree.position.longitude;
               final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
@@ -400,13 +404,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               (_userRoles.contains('admin') || _user!.uid == widget.tree.userId))
             IconButton(
               icon: const Icon(Icons.delete),
-              tooltip: 'Delete tree',
+              tooltip: l10n.deleteTreeTooltip,
               onPressed: _showDeleteTreeDialog,
             ),
           // Report button
           IconButton(
             icon: const Icon(Icons.flag, color: Colors.white),
-            tooltip: 'Report this content',
+            tooltip: l10n.reportTooltip,
             onPressed: _showReportDialog,
           ),
         ],
@@ -465,10 +469,10 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       ),
                       child: Text(
                         widget.tree.status == 'approved'
-                            ? AppLocalizations.of(context)!.statusApproved
+                            ? l10n.statusApproved
                             : widget.tree.status == 'rejected'
-                                ? AppLocalizations.of(context)!.statusRejected
-                                : AppLocalizations.of(context)!.statusPending,
+                                ? l10n.statusRejected
+                                : l10n.statusPending,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -491,11 +495,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       onPressed: () async {
                         if (_user == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'You need to be logged in to verify trees',
-                              ),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(l10n.loginToVerify),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                           return;
@@ -537,7 +539,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Error: $errorMessage'),
+                              content: Text('${l10n.somethingWentWrong}: $errorMessage'),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -562,11 +564,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       onPressed: () async {
                         if (_user == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'You need to be logged in to unverify trees',
-                              ),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(l10n.loginToUnverify),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                           return;
@@ -608,7 +608,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Error: $errorMessage'),
+                              content: Text('${l10n.somethingWentWrong}: $errorMessage'),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -628,7 +628,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     ElevatedButton.icon(
                       onPressed: _navigateToTree,
                       icon: const Icon(Icons.directions, size: 18),
-                      label: Text(AppLocalizations.of(context)!.navigate),
+                      label: Text(l10n.navigate),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -638,12 +638,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Added ${widget.tree.createdAt.toDate().toLocal().toString().split(' ')[0]}',
+                  l10n.addedDate(widget.tree.createdAt.toDate().toLocal().toString().split(' ')[0]),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 if (widget.tree.lastVerifiedAt != null)
                   Text(
-                    'Last verified: ${widget.tree.lastVerifiedAt!.toDate().toLocal().toString().split(' ')[0]}',
+                    l10n.lastVerifiedDate(widget.tree.lastVerifiedAt!.toDate().toLocal().toString().split(' ')[0]),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.green[700]),
@@ -667,7 +667,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No photos or comments yet',
+                          l10n.noPhotosOrComments,
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 16,
@@ -675,7 +675,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Be the first to share!',
+                          l10n.beTheFirstToShare,
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 14,
@@ -710,8 +710,8 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
               )
             : const Icon(Icons.add_photo_alternate),
         label: Text(_isAddingPost
-            ? 'Posting...'
-            : AppLocalizations.of(context)!.addCommentPhotos),
+            ? l10n.posting
+            : l10n.addCommentPhotos),
         backgroundColor: _isAddingPost
             ? Colors.grey
             : Theme.of(context).primaryColor,
@@ -783,6 +783,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   Widget _buildPostCard(TreePost post) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 2,
       child: Padding(
@@ -830,12 +831,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
-                          title: const Text('Delete Post'),
-                          content: const Text('Are you sure you want to delete this post?'),
+                          title: Text(l10n.deletePost),
+                          content: Text(l10n.deletePostConfirmation),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Cancel'),
+                              child: Text(l10n.cancel),
                             ),
                             ElevatedButton(
                               onPressed: () {
@@ -843,7 +844,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                                 _deletePost(post.id);
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                              child: const Text('Delete'),
+                              child: Text(l10n.deletePost),
                             ),
                           ],
                         ),

@@ -102,9 +102,9 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
             '[AddTreeDialog] Back button pressed during loading - preventing dismissal',
           );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please wait for the tree to be saved'),
-              duration: Duration(seconds: 2),
+            SnackBar(
+              content: Text(l10n.pleaseWait),
+              duration: const Duration(seconds: 2),
             ),
           );
           return false;
@@ -308,11 +308,9 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                         } else if (!result && mounted) {
                           debugPrint('[AddTreeDialog] Failed to save tree');
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Failed to save tree. Please try again.',
-                              ),
-                              duration: Duration(seconds: 3),
+                            SnackBar(
+                              content: Text(l10n.failedToSaveTree),
+                              duration: const Duration(seconds: 3),
                             ),
                           );
                         }

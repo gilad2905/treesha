@@ -274,6 +274,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Show update dialog if app version is outdated
   void _showUpdateDialog(Map<String, dynamic> updateInfo) {
+    final l10n = AppLocalizations.of(context)!;
     final forceUpdate = updateInfo['forceUpdate'] as bool? ?? true;
     final message = updateInfo['message'] as String;
 
@@ -283,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (dialogContext) => WillPopScope(
         onWillPop: () async => !forceUpdate,
         child: AlertDialog(
-          title: const Text('Update Required'),
+          title: Text(l10n.updateRequired),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,11 +292,11 @@ class _MyHomePageState extends State<MyHomePage> {
               Text(message),
               const SizedBox(height: 16),
               Text(
-                'Current version: ${updateInfo['currentVersion']}',
+                l10n.currentVersionLabel(updateInfo['currentVersion'] ?? ''),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               Text(
-                'Minimum version: ${updateInfo['minVersion']}',
+                l10n.minVersionLabel(updateInfo['minVersion'] ?? ''),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
@@ -304,7 +305,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if (!forceUpdate)
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('Later'),
+                child: Text(l10n.later),
               ),
             ElevatedButton(
               onPressed: () async {
@@ -312,14 +313,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 final url = Uri.parse(
                   defaultTargetPlatform == TargetPlatform.android
                       ? 'https://play.google.com/store/apps/details?id=com.badbird.treez'
-                                                : 'https://apps.apple.com/app/treez/id123456789',                );
+                      : 'https://apps.apple.com/app/treez/id123456789',
+                );
                 try {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 } catch (e) {
                   debugPrint('[Main] Error opening store: $e');
                 }
               },
-              child: const Text('Update Now'),
+              child: Text(l10n.updateNow),
             ),
           ],
         ),
@@ -660,13 +662,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'signout',
                   child: Row(
                     children: [
-                      Icon(Icons.logout, size: 20, color: Colors.redAccent),
-                      SizedBox(width: 12),
-                      Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                      const Icon(Icons.logout, size: 20, color: Colors.redAccent),
+                      const SizedBox(width: 12),
+                      Text(l10n.signOut, style: const TextStyle(color: Colors.redAccent)),
                     ],
                   ),
                 ),
@@ -717,7 +719,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
         child: _isSavingTree
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Icon(Icons.add),
+            : Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: 0.3,
+                    child: SvgPicture.asset(
+                      'assets/tree.svg',
+                      width: 40,
+                      height: 40,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.add, color: Colors.white, size: 30),
+                ],
+              ),
       ),
     );
   }
@@ -761,15 +780,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (_mapController == null) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final zoomLevel = await _mapController!.getZoomLevel();
     const double maxZoomThreshold = 19.0;
 
     if (zoomLevel < maxZoomThreshold) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Zoom closer plz => for better accuracy 🔎'),
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: Text(l10n.zoomCloser),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -777,8 +797,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     debugPrint('[MapTap] Tapped at: ${latLng.latitude}, ${latLng.longitude}');
-
-    final l10n = AppLocalizations.of(context)!;
 
     // Check if user is logged in
     if (_user == null) {
@@ -879,7 +897,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 try {
                   await _treeRepository.addPostToTree(docId, {
                     'userId': _user!.uid,
-                    'userName': _user!.displayName ?? 'Anonymous',
+                    'userName': _user!.displayName ?? l10n.anonymous,
                     'imageUrls': imageUrls,
                     'comment': comment,
                   });
@@ -909,7 +927,7 @@ class _MyHomePageState extends State<MyHomePage> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Failed to add tree: ${e.code}'),
+                    content: Text(l10n.failedToAddTree(e.code)),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 5),
                   ),
@@ -922,7 +940,7 @@ class _MyHomePageState extends State<MyHomePage> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Failed to add tree: ${e.toString()}'),
+                    content: Text(l10n.failedToAddTree(e.toString())),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 5),
                   ),
@@ -971,16 +989,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
     if (zoomLevel < maxZoomThreshold) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Zoom closer plz => for better accuracy 🔎'),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(l10n.zoomCloser),
+          duration: const Duration(seconds: 3),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Now long-click on the exact position of the tree to add it'),
-          duration: Duration(seconds: 4),
+        SnackBar(
+          content: Text(l10n.longClickToAdd),
+          duration: const Duration(seconds: 4),
         ),
       );
     }

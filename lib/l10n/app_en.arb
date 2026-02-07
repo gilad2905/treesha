@@ -308,5 +308,191 @@
   "addCommentPhotos": "Add Photos/Comment",
   "@addCommentPhotos": {
     "description": "Add photos and comment button label"
+  },
+  "zoomCloser": "Zoom closer for better accuracy 🔎",
+  "@zoomCloser": {
+    "description": "Message to zoom in closer for better accuracy"
+  },
+  "longClickToAdd": "Long-click on the exact position of the tree to add it",
+  "@longClickToAdd": {
+    "description": "Instruction to long-click to add a tree"
+  },
+  "updateRequired": "Update Required",
+  "@updateRequired": {
+    "description": "Title for update dialog"
+  },
+  "updateNow": "Update Now",
+  "@updateNow": {
+    "description": "Button to update the app"
+  },
+  "later": "Later",
+  "@later": {
+    "description": "Button to dismiss update dialog"
+  },
+  "anonymous": "Anonymous",
+  "@anonymous": {
+    "description": "Default username for anonymous users"
+  },
+  "currentVersionLabel": "Current version: {version}",
+  "@currentVersionLabel": {
+    "description": "Label for current version",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "minVersionLabel": "Minimum version: {version}",
+  "@minVersionLabel": {
+    "description": "Label for minimum version",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToAddTree": "Failed to add tree: {error}",
+  "@failedToAddTree": {
+    "description": "Error message when tree addition fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSaveTree": "Failed to save tree. Please try again.",
+  "@failedToSaveTree": {
+    "description": "Error message when tree saving fails"
+  },
+  "unexpectedError": "An unexpected error occurred: {error}",
+  "@unexpectedError": {
+    "description": "Generic error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pleaseWait": "Please wait for the tree to be saved",
+  "@pleaseWait": {
+    "description": "Message to wait during saving"
+  },
+  "noFruitTypesAvailable": "No fruit types available",
+  "@noFruitTypesAvailable": {
+    "description": "Message when no fruit types are found"
+  },
+  "statusFilter": "Status",
+  "@statusFilter": {
+    "description": "Status filter label"
+  },
+  "lastVerifiedAfter": "Last Verified After",
+  "@lastVerifiedAfter": {
+    "description": "Last verified after filter label"
+  },
+  "noDateFilter": "No date filter",
+  "@noDateFilter": {
+    "description": "Message when no date filter is selected"
+  },
+  "addedAfter": "Added After",
+  "@addedAfter": {
+    "description": "Added after filter label"
+  },
+  "showReportedOnly": "Show Reported Only",
+  "@showReportedOnly": {
+    "description": "Show reported only filter label"
+  },
+  "filterReportedSubtitle": "Filter trees flagged by users",
+  "@filterReportedSubtitle": {
+    "description": "Subtitle for reported trees filter"
+  },
+  "showUnknownFruitsOnly": "Show Unknown Fruits Only",
+  "@showUnknownFruitsOnly": {
+    "description": "Show unknown fruits only filter label"
+  },
+  "filterUnknownFruitsSubtitle": "Filter fruits not in the official list",
+  "@filterUnknownFruitsSubtitle": {
+    "description": "Subtitle for unknown fruits filter"
+  },
+  "loginToAddPhotos": "You need to be logged in to add photos or comments",
+  "@loginToAddPhotos": {
+    "description": "Message to log in to add photos"
+  },
+  "postAddedSuccessfully": "Post added successfully",
+  "@postAddedSuccessfully": {
+    "description": "Success message when post is added"
+  },
+  "loginToReport": "You need to be logged in to report",
+  "@loginToReport": {
+    "description": "Message to log in to report content"
+  },
+  "deleteTree": "Delete Tree",
+  "@deleteTree": {
+    "description": "Delete tree button text"
+  },
+  "deleteTreeConfirmation": "Are you sure you want to delete this tree and all its posts? This action cannot be undone.",
+  "@deleteTreeConfirmation": {
+    "description": "Confirmation message for tree deletion"
+  },
+  "treeDeletedSuccessfully": "Tree deleted successfully",
+  "@treeDeletedSuccessfully": {
+    "description": "Success message when tree is deleted"
+  },
+  "postDeletedSuccessfully": "Post deleted successfully",
+  "@postDeletedSuccessfully": {
+    "description": "Success message when post is deleted"
+  },
+  "deleteTreeTooltip": "Delete tree",
+  "@deleteTreeTooltip": {
+    "description": "Tooltip for delete tree button"
+  },
+  "reportTooltip": "Report this content",
+  "@reportTooltip": {
+    "description": "Tooltip for report button"
+  },
+  "loginToVerify": "You need to be logged in to verify trees",
+  "@loginToVerify": {
+    "description": "Message to log in to verify trees"
+  },
+  "loginToUnverify": "You need to be logged in to unverify trees",
+  "@loginToUnverify": {
+    "description": "Message to log in to unverify trees"
+  },
+  "addedDate": "Added {date}",
+  "@addedDate": {
+    "description": "Label for added date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lastVerifiedDate": "Last verified: {date}",
+  "@lastVerifiedDate": {
+    "description": "Label for last verified date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noPhotosOrComments": "No photos or comments yet",
+  "@noPhotosOrComments": {
+    "description": "Message when there are no posts"
+  },
+  "beTheFirstToShare": "Be the first to share!",
+  "@beTheFirstToShare": {
+    "description": "Encouragement to add the first post"
+  },
+  "deletePost": "Delete Post",
+  "@deletePost": {
+    "description": "Delete post button text"
+  },
+  "deletePostConfirmation": "Are you sure you want to delete this post?",
+  "@deletePostConfirmation": {
+    "description": "Confirmation message for post deletion"
+  },
+  "posting": "Posting...",
+  "@posting": {
+    "description": "Message while posting content"
   }
 }
