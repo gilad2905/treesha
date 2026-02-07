@@ -25,7 +25,6 @@ import 'package:treesha/services/firebase_service.dart';
 import 'package:treesha/services/firestore_config.dart';
 import 'package:treesha/services/tree_repository.dart';
 import 'package:treesha/services/tree_repository_no_confirm.dart';
-import 'package:treesha/services/firestore_diagnostic.dart';
 import 'package:treesha/services/version_check_service.dart';
 
 import 'package:treesha/models/fruit_model.dart';
@@ -595,21 +594,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
             ],
-          ),
-          // Diagnostic button
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            tooltip: 'Run Firebase Diagnostic',
-            onPressed: () async {
-              await FirestoreDiagnostic.runFullDiagnostic();
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Diagnostic complete - check console'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
           ),
           if (_user == null)
             TextButton(
