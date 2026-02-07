@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:treesha/models/fruit_model.dart';
+import 'package:treez/models/fruit_model.dart';
 
 class FruitService {
   static Future<List<Fruit>> loadFruits([String? filter]) async {

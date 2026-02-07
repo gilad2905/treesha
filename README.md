@@ -1,4 +1,4 @@
-# Treesha 🌳
+# Treez 🌳
 
 A Flutter app for tracking fruit trees around the world. View, add, and verify fruit trees with location-based mapping.
 
@@ -15,7 +15,7 @@ A Flutter app for tracking fruit trees around the world. View, add, and verify f
 
 - **Frontend**: Flutter/Dart
 - **Authentication**: Firebase Auth (Google Sign-In)
-- **Database**: Cloud Firestore (custom database: "treesha")
+- **Database**: Cloud Firestore (custom database: "treez")
 - **Storage**: Firebase Storage
 - **Maps**: Google Maps Flutter
 
@@ -29,7 +29,7 @@ A Flutter app for tracking fruit trees around the world. View, add, and verify f
 
 ### Unit Tests
 ```bash
-cd /Users/gilad/projects/treesha_base/treesha
+cd /Users/gilad/projects/treez_base/treez
 flutter pub get
 ```
 
@@ -42,13 +42,13 @@ flutter test test/services/tree_repository_test.dart
 ### Running the App
 
 ```bash
-cd ~/projects/treesha_base/treesha
+cd ~/projects/treez_base/treez
 flutter run -d chrome --web-hostname localhost --web-port 53491
 ```
 
 ## Firebase Configuration
 
-This app uses a **custom Firestore database named "treesha"** (not the default database).
+This app uses a **custom Firestore database named "treez"** (not the default database).
 
 ### Security Rules Deployment
 
@@ -59,12 +59,12 @@ This app uses a **custom Firestore database named "treesha"** (not the default d
 1. Open [Firebase Console](https://console.firebase.google.com)
 2. Select your project
 3. Go to Firestore Database
-4. Select the **"treesha"** database from the dropdown
+4. Select the **"treez"** database from the dropdown
 5. Click the **"Rules"** tab
 6. Copy the contents of `firestore.rules` and paste them
 7. Click **"Publish"**
 
-The rules file is maintained in `firestore.rules` for version control, but must be manually deployed to the "treesha" database.
+The rules file is maintained in `firestore.rules` for version control, but must be manually deployed to the "treez" database.
 
 ## Security
 
@@ -167,3 +167,20 @@ Based on your app concept, here are features that would be valuable:
 
 13. Added by? (shaming in case this is junk?)
 14. different type of green? top bar should have white icons on dark gray?
+
+
+ To complete this change and ensure the app continues to function correctly, you must perform the following actions in the Firebase Console:
+
+
+   1. Add a New Android App: In your Firebase project, add a new Android app with the package name com.badbird.treez. Download the new google-services.json and replace the
+      one at android/app/google-services.json.
+   2. Add a New iOS App: Similarly, add a new iOS app with the bundle ID com.badbird.treez. Download the new GoogleService-Info.plist and replace the one at
+      ios/Runner/GoogleService-Info.plist.
+   3. Update SHA-1/SHA-256: Don't forget to add your local development and production SHA-1/SHA-256 fingerprints to the new Android app in the Firebase Console to enable
+      Google Sign-In and other services.
+   4. Google Cloud Console: You may also need to update your OAuth 2.0 Client IDs in the Google Cloud Console to match the new package name and bundle ID.
+   5. Re-run FlutterFire CLI (Optional but Recommended): Running flutterfire configure will automatically synchronize your lib/firebase_options.dart and other config files
+      with the latest settings from your Firebase project.
+
+
+  Your local code is now fully prepared for the Treez (com.badbird.treez) identity.

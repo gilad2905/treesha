@@ -3,7 +3,7 @@
 ## Step 1: Get Dependencies
 
 ```bash
-cd /Users/gilad/projects/treesha_base/treesha
+cd /Users/gilad/projects/treez_base/treez
 flutter pub get
 ```
 
@@ -35,7 +35,7 @@ flutter run -d chrome --web-hostname localhost --web-port 53491
 
 ```
 [Main] ========================================
-[Main] Treesha App Starting
+[Main] Treez App Starting
 [Main] ========================================
 [Main] Step 1: Initializing Firebase...
 [Main] ✅ Firebase initialized

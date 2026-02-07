@@ -50,10 +50,9 @@ class DefaultFirebaseOptions {
     measurementId: 'G-RT5CGZX8CG',
   );
 
-  static const
-   FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBYEDJjk_-lA473yrbvYU0Ay595EhUnlGo',
-    appId: '1:859938357630:android:0b04b2e4b0ea40498ab32f',
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyBh1lmgeDHMkqhdk_3S80uub_ygbR6ChSY',
+    appId: '1:859938357630:android:7fcda5819432e2de8ab32f',
     messagingSenderId: '859938357630',
     projectId: 'applied-primacy-294221',
     storageBucket: 'applied-primacy-294221.firebasestorage.app',
@@ -65,7 +64,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '859938357630',
     projectId: 'applied-primacy-294221',
     storageBucket: 'applied-primacy-294221.firebasestorage.app',
-    iosBundleId: 'com.example.treesha',
+    androidClientId: '859938357630-gljtck19gov495lfi9u8nihd71kjv2st.apps.googleusercontent.com',
+    iosClientId: '859938357630-7nge2n09jkqvp3vh41k0qf7g1rfdgfnb.apps.googleusercontent.com',
+    iosBundleId: 'com.badbird.treez',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -74,7 +75,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '859938357630',
     projectId: 'applied-primacy-294221',
     storageBucket: 'applied-primacy-294221.firebasestorage.app',
-    iosBundleId: 'com.example.treesha',
+    androidClientId: '859938357630-gljtck19gov495lfi9u8nihd71kjv2st.apps.googleusercontent.com',
+    iosClientId: '859938357630-7nge2n09jkqvp3vh41k0qf7g1rfdgfnb.apps.googleusercontent.com',
+    iosBundleId: 'com.badbird.treez',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -86,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'applied-primacy-294221.firebasestorage.app',
     measurementId: 'G-JVCNC7681P',
   );
+
 }

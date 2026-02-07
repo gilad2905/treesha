@@ -1,8 +1,8 @@
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:treesha/services/firestore_config.dart';
-import 'package:treesha/services/tree_repository.dart';
+import 'package:treez/services/firestore_config.dart';
+import 'package:treez/services/tree_repository.dart';
 
 void main() {
   group('TreeRepository', () {

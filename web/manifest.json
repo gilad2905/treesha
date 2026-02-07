@@ -1,7 +1,6 @@
 {
-    "name": "treesha",
-    "short_name": "treesha",
-    "start_url": ".",
+      "name": "treez",
+      "short_name": "treez",    "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",

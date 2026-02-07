@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:treesha/l10n/app_localizations.dart';
-import 'package:treesha/models/fruit_model.dart'; // Import fruit_model
-import 'package:treesha/services/fruit_service.dart'; // Import fruit_service
+import 'package:treez/l10n/app_localizations.dart';
+import 'package:treez/models/fruit_model.dart'; // Import fruit_model
+import 'package:treez/services/fruit_service.dart'; // Import fruit_service
 
 class AddTreeDialog extends StatefulWidget {
   final Future<bool> Function(

@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:treesha/models/tree_model.dart';
-import 'package:treesha/models/tree_post.dart';
-import 'package:treesha/services/firebase_auth_service.dart';
-import 'package:treesha/services/firebase_service.dart';
-import 'package:treesha/services/tree_repository.dart';
-import 'package:treesha/services/tree_repository_no_confirm.dart';
+import 'package:treez/models/tree_model.dart';
+import 'package:treez/models/tree_post.dart';
+import 'package:treez/services/firebase_auth_service.dart';
+import 'package:treez/services/firebase_service.dart';
+import 'package:treez/services/tree_repository.dart';
+import 'package:treez/services/tree_repository_no_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TreeDetailScreen extends StatefulWidget {

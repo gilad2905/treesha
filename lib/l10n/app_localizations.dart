@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// The application title
   ///
   /// In en, this message translates to:
-  /// **'Treesha'**
+  /// **'Treez'**
   String get appTitle;
 
   /// Sign in button text

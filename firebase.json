@@ -5,7 +5,7 @@
       "rules": "firestore.rules"
     },
     {
-      "database": "treesha",
+      "database": "treez",
       "rules": "firestore.rules"
     }
   ],

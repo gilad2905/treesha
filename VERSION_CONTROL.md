@@ -13,7 +13,7 @@ This app includes a minimum version check feature to handle breaking changes gra
 
 ### Step 1: Create the version config document
 
-In Firebase Console, go to your "treesha" database and create:
+In Firebase Console, go to your "treez" database and create:
 
 **Collection**: `app_config`
 **Document ID**: `version`
@@ -40,7 +40,7 @@ In Firebase Console, go to your "treesha" database and create:
   "forceUpdate": true,
 
   // Custom message to show users
-  "updateMessage": "A new version of Treesha is available with important bug fixes. Please update to continue."
+  "updateMessage": "A new version of Treez is available with important bug fixes. Please update to continue."
 }
 ```
 
@@ -64,9 +64,9 @@ Deploy the rules:
 firebase deploy --only firestore:rules
 ```
 
-⚠️ **Note**: Firebase CLI doesn't support deploying rules to named databases ("treesha"). You'll need to copy the rules manually in Firebase Console:
+⚠️ **Note**: Firebase CLI doesn't support deploying rules to named databases ("treez"). You'll need to copy the rules manually in Firebase Console:
 1. Go to Firebase Console → Firestore Database
-2. Select the "treesha" database
+2. Select the "treez" database
 3. Go to "Rules" tab
 4. Paste the rules from `firestore.rules`
 
@@ -80,7 +80,7 @@ When you release v2.0.0 with breaking changes:
   "minVersion_android": "2.0.0",
   "minBuildNumber_android": 10,
   "forceUpdate": true,
-  "updateMessage": "This update includes important changes. Please update to continue using Treesha."
+  "updateMessage": "This update includes important changes. Please update to continue using Treez."
 }
 ```
 
@@ -127,10 +127,10 @@ Update the store URLs in `lib/main.dart` after publishing:
 
 ```dart
 // Android Play Store
-'https://play.google.com/store/apps/details?id=com.example.treesha'
+'https://play.google.com/store/apps/details?id=com.example.treez'
 
 // iOS App Store
-'https://apps.apple.com/app/treesha/id123456789'
+'https://apps.apple.com/app/treez/id123456789'
 ```
 
 ## Testing

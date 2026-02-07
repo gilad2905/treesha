@@ -77,7 +77,7 @@ try {
 You should see:
 ```
 [Main] ========================================
-[Main] Treesha App Starting
+[Main] Treez App Starting
 [Main] ========================================
 [Main] Step 1: Initializing Firebase...
 [Main] ✅ Firebase initialized

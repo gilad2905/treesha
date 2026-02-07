@@ -48,7 +48,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fruitTypeLongan => 'Longan';
 
   @override
-  String get appTitle => 'Treesha';
+  String get appTitle => 'Treez';
 
   @override
   String get signIn => 'Sign In';

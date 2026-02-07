@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:treesha/constants.dart';
-import 'package:treesha/models/tree_model.dart';
-import 'package:treesha/services/firestore_config.dart';
+import 'package:treez/constants.dart';
+import 'package:treez/models/tree_model.dart';
+import 'package:treez/services/firestore_config.dart';
 
 /// Repository for tree operations
 /// Handles all Firestore interactions for trees

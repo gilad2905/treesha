@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:treesha/constants.dart';
-import 'package:treesha/l10n/app_localizations.dart';
-import 'package:treesha/models/tree_filters.dart';
+import 'package:treez/constants.dart';
+import 'package:treez/l10n/app_localizations.dart';
+import 'package:treez/models/tree_filters.dart';
 
 class FilterDialog extends StatefulWidget {
   final TreeFilters initialFilters;

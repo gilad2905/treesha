@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:treesha/services/firebase_auth_service.dart';
+import 'package:treez/services/firebase_auth_service.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -17,25 +17,25 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:treesha/l10n/app_localizations.dart';
+import 'package:treez/l10n/app_localizations.dart';
 
-import 'package:treesha/providers/locale_provider.dart';
+import 'package:treez/providers/locale_provider.dart';
 
-import 'package:treesha/services/firebase_service.dart';
-import 'package:treesha/services/firestore_config.dart';
-import 'package:treesha/services/tree_repository.dart';
-import 'package:treesha/services/tree_repository_no_confirm.dart';
-import 'package:treesha/services/version_check_service.dart';
+import 'package:treez/services/firebase_service.dart';
+import 'package:treez/services/firestore_config.dart';
+import 'package:treez/services/tree_repository.dart';
+import 'package:treez/services/tree_repository_no_confirm.dart';
+import 'package:treez/services/version_check_service.dart';
 
-import 'package:treesha/models/fruit_model.dart';
-import 'package:treesha/services/fruit_service.dart';
-import 'package:treesha/models/tree_model.dart';
+import 'package:treez/models/fruit_model.dart';
+import 'package:treez/services/fruit_service.dart';
+import 'package:treez/models/tree_model.dart';
 
-import 'package:treesha/widgets/add_tree_dialog.dart';
-import 'package:treesha/widgets/filter_dialog.dart';
-import 'package:treesha/screens/tree_detail_screen.dart';
-import 'package:treesha/models/tree_filters.dart';
-import 'package:treesha/utils/svg_marker_loader.dart'; // Import the new utility
+import 'package:treez/widgets/add_tree_dialog.dart';
+import 'package:treez/widgets/filter_dialog.dart';
+import 'package:treez/screens/tree_detail_screen.dart';
+import 'package:treez/models/tree_filters.dart';
+import 'package:treez/utils/svg_marker_loader.dart'; // Import the new utility
 
 // You must setup firebase CLI and run `flutterfire configure`
 
@@ -47,7 +47,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   debugPrint('[Main] ========================================');
-  debugPrint('[Main] Treesha App Starting');
+  debugPrint('[Main] Treez App Starting');
   debugPrint('[Main] ========================================');
 
   try {
@@ -102,7 +102,7 @@ class MyApp extends StatelessWidget {
     return Consumer<LocaleProvider>(
       builder: (context, localeProvider, child) {
         return MaterialApp(
-          title: 'Treesha',
+          title: 'Treez',
 
           // Localization configuration
           locale: localeProvider.locale,
@@ -309,7 +309,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 // Open app store
                 final url = Uri.parse(
                   defaultTargetPlatform == TargetPlatform.android
-                      ? 'https://play.google.com/store/apps/details?id=com.example.treesha'
+                      ? 'https://play.google.com/store/apps/details?id=com.badbird.treez'
                       : 'https://apps.apple.com/app/treesha/id123456789',
                 );
                 try {

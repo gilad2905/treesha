@@ -11,9 +11,9 @@ admin.initializeApp({
   databaseURL: "https://applied-primacy-294221.firebaseio.com"
 });
 
-// Get Firestore instance for "treesha" database
+// Get Firestore instance for "treez" database
 const db = admin.firestore();
-db.settings({ databaseId: 'treesha' });
+db.settings({ databaseId: 'treez' });
 
 async function initVersionConfig() {
   try {
@@ -23,7 +23,7 @@ async function initVersionConfig() {
       minVersion_ios: "1.0.0",
       minBuildNumber_ios: 1,
       forceUpdate: false,
-      updateMessage: "A new version of Treesha is available. Please update to get the latest features and improvements."
+      updateMessage: "A new version of Treez is available. Please update to get the latest features and improvements."
     };
 
     await db.collection('app_config').doc('version').set(versionConfig);
