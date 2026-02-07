@@ -238,5 +238,75 @@
   "apply": "Apply",
   "@apply": {
     "description": "Apply button text"
+  },
+  "statusPending": "Pending",
+  "@statusPending": {
+    "description": "Pending status label"
+  },
+  "statusApproved": "Approved",
+  "@statusApproved": {
+    "description": "Approved status label"
+  },
+  "statusRejected": "Rejected",
+  "@statusRejected": {
+    "description": "Rejected status label"
+  },
+  "navigate": "Navigate",
+  "@navigate": {
+    "description": "Navigate button text"
+  },
+  "commentOptional": "Comment (optional)",
+  "@commentOptional": {
+    "description": "Comment input label"
+  },
+  "addCommentHint": "Add a comment...",
+  "@addCommentHint": {
+    "description": "Comment input hint"
+  },
+  "photos": "Photos ({count})",
+  "@photos": {
+    "description": "Photos section title",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addPhotos": "Add Photos",
+  "@addPhotos": {
+    "description": "Add photos button text"
+  },
+  "reportContent": "Report Content",
+  "@reportContent": {
+    "description": "Report dialog title"
+  },
+  "reportConfirmation": "Are you sure you want to report this tree? Our team will review it.",
+  "@reportConfirmation": {
+    "description": "Report confirmation message"
+  },
+  "report": "Report",
+  "@report": {
+    "description": "Report button text"
+  },
+  "reportSubmitted": "Report submitted. Thank you!",
+  "@reportSubmitted": {
+    "description": "Report success message"
+  },
+  "share": "Share",
+  "@share": {
+    "description": "Share button text"
+  },
+  "shareText": "Check out this {fruit} tree on Treez!",
+  "@shareText": {
+    "description": "Text shared on social media",
+    "placeholders": {
+      "fruit": {
+        "type": "String"
+      }
+    }
+  },
+  "addCommentPhotos": "Add Photos/Comment",
+  "@addCommentPhotos": {
+    "description": "Add photos and comment button label"
   }
 }

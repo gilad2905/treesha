@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:treez/constants.dart';
 import 'package:treez/l10n/app_localizations.dart';
 import 'package:treez/models/tree_filters.dart';
+import 'package:treez/models/fruit_model.dart';
 
 class FilterDialog extends StatefulWidget {
   final TreeFilters initialFilters;
   final List<String> availableFruitTypes;
+  final List<Fruit> allFruits;
   final bool isAdmin;
 
   const FilterDialog({
     super.key,
     required this.initialFilters,
     required this.availableFruitTypes,
+    required this.allFruits,
     this.isAdmin = false,
   });
 
@@ -27,12 +30,6 @@ class _FilterDialogState extends State<FilterDialog> {
   late TextEditingController _treeNameController;
   late bool _showReportedOnly;
   late bool _showUnknownFruitsOnly;
-
-  final Map<String, String> _statusLabels = {
-    AppConstants.statusApproved: 'Approved',
-    AppConstants.statusPending: 'Pending',
-    AppConstants.statusRejected: 'Rejected',
-  };
 
   @override
   void initState() {
@@ -67,7 +64,7 @@ class _FilterDialogState extends State<FilterDialog> {
           children: [
             // Tree Name Filter
             Text(
-              'Tree Name',
+              l10n.treeName,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -75,10 +72,10 @@ class _FilterDialogState extends State<FilterDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _treeNameController,
-              decoration: const InputDecoration(
-                hintText: 'Search by tree name...',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
+              decoration: InputDecoration(
+                hintText: '${l10n.treeName}...',
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
@@ -88,7 +85,7 @@ class _FilterDialogState extends State<FilterDialog> {
 
             // Fruit Type Filter
             Text(
-              'Fruit Type',
+              l10n.fruitType,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -108,8 +105,22 @@ class _FilterDialogState extends State<FilterDialog> {
                 runSpacing: 8,
                 children: widget.availableFruitTypes.map((fruitType) {
                   final isSelected = _selectedFruitTypes.contains(fruitType);
+
+                  // Find the fruit in allFruits to get the Hebrew name
+                  String displayName = fruitType;
+                  if (Localizations.localeOf(context).languageCode == 'he') {
+                    try {
+                      final fruit = widget.allFruits.firstWhere(
+                        (f) => f.type.toLowerCase() == fruitType.toLowerCase(),
+                      );
+                      displayName = fruit.typeHe;
+                    } catch (e) {
+                      // Fallback to English if not found in official list
+                    }
+                  }
+
                   return FilterChip(
-                    label: Text(fruitType),
+                    label: Text(displayName),
                     selected: isSelected,
                     onSelected: (selected) {
                       setState(() {
@@ -136,36 +147,11 @@ class _FilterDialogState extends State<FilterDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _statusLabels.entries.map((entry) {
-                final status = entry.key;
-                final label = entry.value;
-                final isSelected = _selectedStatusTypes.contains(status);
-                return FilterChip(
-                  label: Text(label),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedStatusTypes.add(status);
-                      } else {
-                        _selectedStatusTypes.remove(status);
-                      }
-                    });
-                  },
-                  backgroundColor:
-                      status == AppConstants.statusApproved
-                          ? Colors.green.withOpacity(0.1)
-                          : status == AppConstants.statusRejected
-                              ? Colors.red.withOpacity(0.1)
-                              : null,
-                  selectedColor:
-                      status == AppConstants.statusApproved
-                          ? Colors.green.withOpacity(0.3)
-                          : status == AppConstants.statusRejected
-                              ? Colors.red.withOpacity(0.3)
-                              : null,
-                );
-              }).toList(),
+              children: [
+                _buildStatusChip(AppConstants.statusApproved, l10n.statusApproved),
+                _buildStatusChip(AppConstants.statusPending, l10n.statusPending),
+                _buildStatusChip(AppConstants.statusRejected, l10n.statusRejected),
+              ],
             ),
             const SizedBox(height: 24),
 
@@ -325,5 +311,32 @@ class _FilterDialogState extends State<FilterDialog> {
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildStatusChip(String status, String label) {
+    final isSelected = _selectedStatusTypes.contains(status);
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          if (selected) {
+            _selectedStatusTypes.add(status);
+          } else {
+            _selectedStatusTypes.remove(status);
+          }
+        });
+      },
+      backgroundColor: status == AppConstants.statusApproved
+          ? Colors.green.withOpacity(0.1)
+          : status == AppConstants.statusRejected
+              ? Colors.red.withOpacity(0.1)
+              : null,
+      selectedColor: status == AppConstants.statusApproved
+          ? Colors.green.withOpacity(0.3)
+          : status == AppConstants.statusRejected
+              ? Colors.red.withOpacity(0.3)
+              : null,
+    );
   }
 }

@@ -5,7 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 /// Service to check if app version meets minimum requirements
 class VersionCheckService {
-  // Use the named "treesha" database
+  // Use the named "treesha" database (Treez)
   FirebaseFirestore get _firestore =>
       FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'treesha');
 
@@ -82,7 +82,7 @@ class VersionCheckService {
           'currentVersion': currentVersion,
           'minVersion': minVersion ?? 'Unknown',
           'message': updateMessage ??
-              'A new version of Treesha is available. Please update to continue.',
+              'A new version of Treez is available. Please update to continue.',
         };
       }
 

@@ -16,7 +16,7 @@ class FirestoreConfig {
     }
 
     debugPrint('[FirestoreConfig] Starting configuration...');
-    debugPrint('[FirestoreConfig] NOTE: Using database "treesha" (not default)');
+    debugPrint('[FirestoreConfig] NOTE: Using database "treesha" (for Treez)');
 
     // Verify Firebase is initialized
     try {
@@ -30,8 +30,8 @@ class FirestoreConfig {
     }
 
     // Note: The Flutter SDK doesn't support custom database names easily
-    // We're using the REST API which explicitly targets the "treesha" database
-    debugPrint('[FirestoreConfig] Using database: treesha (via REST API)');
+    // We're using the REST API which explicitly targets the "treesha" database (Treez)
+    debugPrint('[FirestoreConfig] Using Treez database (via REST API)');
 
     // Apply Firestore settings
     try {
@@ -43,12 +43,12 @@ class FirestoreConfig {
       debugPrint('[FirestoreConfig] Applying settings...');
       FirebaseFirestore.instance.settings = settings;
 
-      // Apply to treesha database as well
-      final treeshaDb = FirebaseFirestore.instanceFor(
+      // Apply to Treez database as well
+      final treezDb = FirebaseFirestore.instanceFor(
         app: Firebase.app(),
         databaseId: 'treesha',
       );
-      treeshaDb.settings = settings;
+      treezDb.settings = settings;
 
       // Verify settings were applied
       await Future.delayed(const Duration(milliseconds: 100));
@@ -85,7 +85,7 @@ class FirestoreConfig {
     }
 
     debugPrint('[FirestoreConfig] Testing Firestore connectivity...');
-    debugPrint('[FirestoreConfig] Note: We use REST API for the "treesha" database');
+    debugPrint('[FirestoreConfig] Note: We use REST API for the Treez database');
     debugPrint(
       '[FirestoreConfig] Skipping SDK connection test as we use REST API directly',
     );

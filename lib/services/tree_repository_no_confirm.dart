@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// TreeRepository that uses Firebase SDK with the custom "treesha" database
+/// for Treez.
 class TreeRepositoryNoConfirm {
   // Use the named "treesha" database instead of the default database
   FirebaseFirestore get _firestore =>
@@ -69,7 +70,7 @@ class TreeRepositoryNoConfirm {
     }
   }
 
-  /// Get all trees from the treesha database
+  /// Get all trees from the Treez database
   Future<List<Map<String, dynamic>>> getAllTrees() async {
     debugPrint('[TreeRepo-SDK] Fetching all trees...');
 

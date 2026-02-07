@@ -174,4 +174,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apply => 'Apply';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusApproved => 'Approved';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get navigate => 'Navigate';
+
+  @override
+  String get commentOptional => 'Comment (optional)';
+
+  @override
+  String get addCommentHint => 'Add a comment...';
+
+  @override
+  String photos(int count) {
+    return 'Photos ($count)';
+  }
+
+  @override
+  String get addPhotos => 'Add Photos';
+
+  @override
+  String get reportContent => 'Report Content';
+
+  @override
+  String get reportConfirmation =>
+      'Are you sure you want to report this tree? Our team will review it.';
+
+  @override
+  String get report => 'Report';
+
+  @override
+  String get reportSubmitted => 'Report submitted. Thank you!';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String shareText(String fruit) {
+    return 'Check out this $fruit tree on Treez!';
+  }
+
+  @override
+  String get addCommentPhotos => 'Add Photos/Comment';
 }

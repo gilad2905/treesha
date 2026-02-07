@@ -12,6 +12,8 @@ import 'package:treez/services/firebase_service.dart';
 import 'package:treez/services/tree_repository.dart';
 import 'package:treez/services/tree_repository_no_confirm.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:treez/l10n/app_localizations.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TreeDetailScreen extends StatefulWidget {
   final Tree tree;
@@ -41,6 +43,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   bool _isLoadingPosts = false;
   bool _isAddingPost = false;
   String? _fruitIconAsset;
+  String? _fruitTypeHe;
 
   @override
   void initState() {
@@ -83,16 +86,19 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       final List<dynamic> data = json.decode(response);
 
       String? iconName;
+      String? hebName;
       for (var item in data) {
         if (item['fruit_type'].toString().toLowerCase() ==
             widget.tree.fruitType.toLowerCase()) {
           iconName = item['icon'];
+          hebName = item['fruit_type_he'];
           break;
         }
       }
 
       if (mounted) {
         setState(() {
+          _fruitTypeHe = hebName;
           if (iconName != null) {
             _fruitIconAsset = 'assets/fruit_icons/$iconName';
           } else {
@@ -241,6 +247,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   }
 
   void _showReportDialog() {
+    final l10n = AppLocalizations.of(context)!;
     if (_user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You need to be logged in to report')),
@@ -252,14 +259,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Report Content'),
-          content: const Text(
-            'Are you sure you want to report this tree? Our team will review it.',
-          ),
+          title: Text(l10n.reportContent),
+          content: Text(l10n.reportConfirmation),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -273,8 +278,8 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       }
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Report submitted. Thank you!'),
+                      SnackBar(
+                        content: Text(l10n.reportSubmitted),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -288,7 +293,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Report'),
+              child: Text(l10n.report),
             ),
           ],
         );
@@ -374,6 +379,22 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
         title: Text(widget.tree.name),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
+          // Share button
+          IconButton(
+            icon: const Icon(Icons.share, color: Colors.white),
+            tooltip: AppLocalizations.of(context)!.share,
+            onPressed: () {
+              final fruit = (Localizations.localeOf(context).languageCode == 'he' && _fruitTypeHe != null)
+                  ? _fruitTypeHe!
+                  : widget.tree.fruitType;
+              final shareText = AppLocalizations.of(context)!.shareText(fruit);
+              final lat = widget.tree.position.latitude;
+              final lng = widget.tree.position.longitude;
+              final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+              
+              Share.share('$shareText\n\n$googleMapsUrl');
+            },
+          ),
           // Delete button for admin or owner
           if (_user != null &&
               (_userRoles.contains('admin') || _user!.uid == widget.tree.userId))
@@ -417,7 +438,10 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       ),
                     Expanded(
                       child: Text(
-                        widget.tree.fruitType,
+                        (Localizations.localeOf(context).languageCode == 'he' &&
+                                _fruitTypeHe != null)
+                            ? _fruitTypeHe!
+                            : widget.tree.fruitType,
                         style: Theme.of(
                           context,
                         ).textTheme.headlineMedium?.copyWith(
@@ -440,7 +464,11 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        widget.tree.status.toUpperCase(),
+                        widget.tree.status == 'approved'
+                            ? AppLocalizations.of(context)!.statusApproved
+                            : widget.tree.status == 'rejected'
+                                ? AppLocalizations.of(context)!.statusRejected
+                                : AppLocalizations.of(context)!.statusPending,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -600,7 +628,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     ElevatedButton.icon(
                       onPressed: _navigateToTree,
                       icon: const Icon(Icons.directions, size: 18),
-                      label: const Text('Navigate'),
+                      label: Text(AppLocalizations.of(context)!.navigate),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -681,7 +709,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                 ),
               )
             : const Icon(Icons.add_photo_alternate),
-        label: Text(_isAddingPost ? 'Posting...' : 'Add Photos/Comment'),
+        label: Text(_isAddingPost
+            ? 'Posting...'
+            : AppLocalizations.of(context)!.addCommentPhotos),
         backgroundColor: _isAddingPost
             ? Colors.grey
             : Theme.of(context).primaryColor,
@@ -949,8 +979,9 @@ class _AddPostDialogState extends State<_AddPostDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Add Photos/Comment'),
+      title: Text(l10n.addPhotos),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -958,10 +989,10 @@ class _AddPostDialogState extends State<_AddPostDialog> {
           children: [
             TextField(
               controller: _commentController,
-              decoration: const InputDecoration(
-                labelText: 'Comment (optional)',
-                hintText: 'Add a comment...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.commentOptional,
+                hintText: l10n.addCommentHint,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
               onChanged: (_) => setState(() {}),
@@ -971,13 +1002,13 @@ class _AddPostDialogState extends State<_AddPostDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Photos (${_selectedImages.length})',
+                  l10n.photos(_selectedImages.length),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 TextButton.icon(
                   onPressed: _pickImages,
                   icon: const Icon(Icons.add_photo_alternate),
-                  label: const Text('Add Photos'),
+                  label: Text(l10n.addPhotos),
                 ),
               ],
             ),
@@ -1037,7 +1068,7 @@ class _AddPostDialogState extends State<_AddPostDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _canPost
@@ -1046,7 +1077,7 @@ class _AddPostDialogState extends State<_AddPostDialog> {
                     'comment': _commentController.text.trim(),
                   })
               : null,
-          child: const Text('Post'),
+          child: Text(l10n.add),
         ),
       ],
     );

@@ -48,7 +48,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get fruitTypeLongan => 'לונגן';
 
   @override
-  String get appTitle => 'טרישה';
+  String get appTitle => 'טריז';
 
   @override
   String get signIn => 'התחבר';
@@ -173,4 +173,54 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get apply => 'החל';
+
+  @override
+  String get statusPending => 'ממתין לאישור';
+
+  @override
+  String get statusApproved => 'מאושר';
+
+  @override
+  String get statusRejected => 'נדחה';
+
+  @override
+  String get navigate => 'ניווט';
+
+  @override
+  String get commentOptional => 'הערה (אופציונלי)';
+
+  @override
+  String get addCommentHint => 'הוסף הערה...';
+
+  @override
+  String photos(int count) {
+    return 'תמונות ($count)';
+  }
+
+  @override
+  String get addPhotos => 'הוסף תמונות';
+
+  @override
+  String get reportContent => 'דווח על תוכן';
+
+  @override
+  String get reportConfirmation =>
+      'האם אתה בטוח שברצונך לדווח על עץ זה? הצוות שלנו יבדוק אותו.';
+
+  @override
+  String get report => 'דווח';
+
+  @override
+  String get reportSubmitted => 'הדיווח נשלח. תודה!';
+
+  @override
+  String get share => 'שתף';
+
+  @override
+  String shareText(String fruit) {
+    return 'תראו את עץ ה$fruit הזה ב-Treez!';
+  }
+
+  @override
+  String get addCommentPhotos => 'הוסף תמונות/הערה';
 }

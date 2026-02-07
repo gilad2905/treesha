@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class FirebaseService {
-  // Use the named "treesha" database instead of the default database
+  // Use the named "treesha" database instead of the default database (Treez)
   FirebaseFirestore get _firestore =>
       FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'treesha');
   FirebaseStorage get _storage => FirebaseStorage.instance;

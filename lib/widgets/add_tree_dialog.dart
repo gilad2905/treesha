@@ -153,14 +153,20 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: _filteredFruits.map((fruit) {
+                          String displayName =
+                              (Localizations.localeOf(context).languageCode ==
+                                          'he' &&
+                                      fruit.typeHe.isNotEmpty)
+                                  ? fruit.typeHe
+                                  : fruit.type;
                           return ListTile(
-                            title: Text(fruit.type),
+                            title: Text(displayName),
                             subtitle: Text(fruit.edibleSeason),
                             onTap: () {
                               setState(() {
-                                _fruitTypeController.text = fruit.type;
+                                _fruitTypeController.text = displayName;
                                 _selectedFruitType =
-                                    fruit.type; // Confirm selection
+                                    fruit.type; // Confirm selection (English)
                                 _filteredFruits =
                                     []; // Clear suggestions after selection
                               });
@@ -174,10 +180,10 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                 // Comment field
                 TextFormField(
                   controller: _commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Comment (optional)',
-                    hintText: 'Add a comment about this tree...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.commentOptional,
+                    hintText: l10n.addCommentHint,
+                    border: const OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
@@ -187,13 +193,13 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Photos (${_images.length})',
+                      l10n.photos(_images.length),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton.icon(
                       onPressed: _isLoading ? null : _pickImages,
                       icon: const Icon(Icons.add_photo_alternate),
-                      label: const Text('Add Photos'),
+                      label: Text(l10n.addPhotos),
                     ),
                   ],
                 ),

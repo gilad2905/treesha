@@ -379,6 +379,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get apply;
+
+  /// Pending status label
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// Approved status label
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get statusApproved;
+
+  /// Rejected status label
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// Navigate button text
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate'**
+  String get navigate;
+
+  /// Comment input label
+  ///
+  /// In en, this message translates to:
+  /// **'Comment (optional)'**
+  String get commentOptional;
+
+  /// Comment input hint
+  ///
+  /// In en, this message translates to:
+  /// **'Add a comment...'**
+  String get addCommentHint;
+
+  /// Photos section title
+  ///
+  /// In en, this message translates to:
+  /// **'Photos ({count})'**
+  String photos(int count);
+
+  /// Add photos button text
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photos'**
+  String get addPhotos;
+
+  /// Report dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Report Content'**
+  String get reportContent;
+
+  /// Report confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to report this tree? Our team will review it.'**
+  String get reportConfirmation;
+
+  /// Report button text
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get report;
+
+  /// Report success message
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted. Thank you!'**
+  String get reportSubmitted;
+
+  /// Share button text
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// Text shared on social media
+  ///
+  /// In en, this message translates to:
+  /// **'Check out this {fruit} tree on Treez!'**
+  String shareText(String fruit);
+
+  /// Add photos and comment button label
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photos/Comment'**
+  String get addCommentPhotos;
 }
 
 class _AppLocalizationsDelegate

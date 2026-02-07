@@ -17,10 +17,10 @@ class FirebaseAuthService {
 
   /// Ensure user exists in Firestore users collection with default role
   Future<void> ensureUserInFirestore(User user) async {
-    // Use the specific 'treesha' database
+    // Use the specific 'treesha' database (Treez)
     final firestore = FirebaseFirestore.instanceFor(
       app: Firebase.app(),
-      databaseId: 'treesha',
+      databaseId: 'treesha', // Treez
     );
     final userDoc = firestore.collection('users').doc(user.uid);
     final doc = await userDoc.get();

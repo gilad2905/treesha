@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:treez/services/firebase_auth_service.dart';
 
@@ -16,6 +17,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:treez/l10n/app_localizations.dart';
 
@@ -310,8 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 final url = Uri.parse(
                   defaultTargetPlatform == TargetPlatform.android
                       ? 'https://play.google.com/store/apps/details?id=com.badbird.treez'
-                      : 'https://apps.apple.com/app/treesha/id123456789',
-                );
+                                                : 'https://apps.apple.com/app/treez/id123456789',                );
                 try {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 } catch (e) {
@@ -547,12 +548,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
         backgroundColor: const Color(0xFF2E7D32),
+        elevation: 2,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/icon/app_icon.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
         actions: [
           // Language selector
           PopupMenuButton<Locale>(
-            icon: const Icon(Icons.language),
+            icon: const Icon(Icons.language, color: Colors.white),
             tooltip: l10n.language,
             onSelected: (Locale locale) {
               localeProvider.setLocale(locale);
@@ -570,9 +581,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           // Filter button with active indicator
           Stack(
+            alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.filter_list),
+                icon: const Icon(Icons.filter_list, color: Colors.white),
                 tooltip: l10n.filters,
                 onPressed: () => _showFilterDialog(),
               ),
@@ -580,42 +592,82 @@ class _MyHomePageState extends State<MyHomePage> {
               if (_filters.hasActiveFilters)
                 Positioned(
                   right: 8,
-                  top: 8,
+                  top: 12,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: Colors.orange,
                       shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF2E7D32), width: 1.5),
                     ),
                     constraints: const BoxConstraints(
-                      minWidth: 8,
-                      minHeight: 8,
+                      minWidth: 10,
+                      minHeight: 10,
                     ),
                   ),
                 ),
             ],
           ),
+          const SizedBox(width: 8),
+          // User Section
           if (_user == null)
-            TextButton(
-              onPressed: () async {
-                await _authService.signInWithGoogle();
-              },
-              child: Text(
-                l10n.signIn,
-                style: const TextStyle(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: TextButton.icon(
+                onPressed: () async {
+                  await _authService.signInWithGoogle();
+                },
+                icon: const Icon(Icons.login, color: Colors.white, size: 20),
+                label: Text(
+                  l10n.signIn,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
               ),
             )
           else
-            Row(
-              children: [
-                Text(_user!.displayName ?? 'No name'),
-                TextButton(
-                  onPressed: () async {
-                    await _authService.signOut();
-                  },
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'signout') {
+                  await _authService.signOut();
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Colors.white24,
+                      child: Text(
+                        (_user!.displayName ?? 'U')[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _user!.displayName?.split(' ').first ?? '',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    ),
+                    const Icon(Icons.arrow_drop_down, color: Colors.white70),
+                  ],
+                ),
+              ),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  enabled: false,
                   child: Text(
-                    l10n.signOut,
-                    style: const TextStyle(color: Colors.white),
+                    _user!.email ?? '',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'signout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, size: 20, color: Colors.redAccent),
+                      SizedBox(width: 12),
+                      Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                    ],
                   ),
                 ),
               ],
@@ -689,6 +741,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return FilterDialog(
           initialFilters: _filters,
           availableFruitTypes: availableFruitTypes,
+          allFruits: _allFruits,
           isAdmin: _userRoles.contains('admin'),
         );
       },

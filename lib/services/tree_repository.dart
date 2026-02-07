@@ -151,14 +151,6 @@ class TreeRepository {
 
         final data = snapshot.data()!;
 
-        // Check 1: Prevent creator from upvoting
-        if (data['userId'] == userId) {
-          throw TreeRepositoryException(
-            'You cannot upvote your own tree',
-            code: 'permission-denied',
-          );
-        }
-
         List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
         List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
 
@@ -228,18 +220,6 @@ class TreeRepository {
 
         final data = snapshot.data()!;
         
-        // Note: Creators CAN downvote their own tree if they realize it's gone/bad?
-        // Logic says "Prevent submitter from upvoting". Doesn't explicitly say downvoting.
-        // Assuming creators shouldn't verify their own tree, but downvoting effectively says "it's not here".
-        // Use case: Creator realizes they made a mistake?
-        // For consistency, let's block voting entirely for creators.
-        if (data['userId'] == userId) {
-          throw TreeRepositoryException(
-            'You cannot vote on your own tree',
-            code: 'permission-denied',
-          );
-        }
-
         List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
         List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
 

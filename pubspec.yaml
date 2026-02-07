@@ -60,10 +60,12 @@ dependencies:
   url_launcher: ^6.3.1
   package_info_plus: ^8.1.2
   flutter_svg: ^2.0.10
+  share_plus: ^12.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -74,6 +76,13 @@ dev_dependencies:
 
   # For mocking Firestore in unit tests
   fake_cloud_firestore: ^4.0.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -90,6 +99,7 @@ flutter:
     - assets/fruits.json
     - assets/fruit_icons/
     - assets/tree.svg
+    - assets/icon/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

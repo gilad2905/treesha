@@ -1,5 +1,4 @@
-/// App-wide constants for Treesha
-
+/// App-wide constants for Treez
 class AppConstants {
   /// Number of upvotes required for a tree to be auto-approved
   static const int requiredTreeUpvotes = 3;

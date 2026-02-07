@@ -1,4 +1,4 @@
-/// User roles for Treesha
+/// User roles for Treez
 class UserRoles {
   static const String admin = 'admin';
   static const String moderator = 'moderator';
