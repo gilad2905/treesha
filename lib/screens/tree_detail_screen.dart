@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:treez/models/tree_model.dart';
 import 'package:treez/models/tree_post.dart';
+import 'package:treez/constants.dart';
 import 'package:treez/services/firebase_auth_service.dart';
 import 'package:treez/services/firebase_service.dart';
 import 'package:treez/services/tree_repository.dart';
@@ -17,8 +18,15 @@ import 'package:share_plus/share_plus.dart';
 
 class TreeDetailScreen extends StatefulWidget {
   final Tree tree;
+  final User? user;
+  final List<String> userRoles;
 
-  const TreeDetailScreen({super.key, required this.tree});
+  const TreeDetailScreen({
+    super.key,
+    required this.tree,
+    this.user,
+    this.userRoles = const ['user'],
+  });
 
   @override
   State<TreeDetailScreen> createState() => _TreeDetailScreenState();
@@ -37,6 +45,8 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   late List<String> _upvotes;
   late List<String> _downvotes;
   late List<String> _reported;
+  late String _status;
+  bool _hasChanged = false;
 
   // Posts state
   List<TreePost> _posts = [];
@@ -53,6 +63,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     _upvotes = List.from(widget.tree.upvotes);
     _downvotes = List.from(widget.tree.downvotes);
     _reported = List.from(widget.tree.reported);
+    _status = widget.tree.status;
+    _user = widget.user;
+    _userRoles = widget.userRoles;
 
     // Debug: Check lastVerifiedAt
     debugPrint('[TreeDetailScreen] Tree: ${widget.tree.name}');
@@ -60,6 +73,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       '[TreeDetailScreen] lastVerifiedAt: ${widget.tree.lastVerifiedAt}',
     );
     debugPrint('[TreeDetailScreen] upvotes: ${widget.tree.upvotes.length}');
+    debugPrint('[TreeDetailScreen] status: ${widget.tree.status}');
 
     _authService.user.listen((user) async {
       if (!mounted) return;
@@ -275,6 +289,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                   await _treeRepository.reportTree(widget.tree.id, _user!.uid);
                   if (mounted) {
                     setState(() {
+                      _hasChanged = true;
                       if (!_reported.contains(_user!.uid)) {
                         _reported.add(_user!.uid);
                       }
@@ -378,10 +393,18 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     bool isDownvoted = _user != null && _downvotes.contains(_user!.uid);
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        // We rely on the AppBar's BackButton override to return _hasChanged
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(widget.tree.name),
         backgroundColor: Theme.of(context).primaryColor,
+        leading: BackButton(
+          onPressed: () => Navigator.of(context).pop(_hasChanged),
+        ),
         actions: [
           // Share button
           IconButton(
@@ -460,17 +483,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.tree.status == 'approved'
+                        color: _status == 'approved'
                             ? Colors.green
-                            : widget.tree.status == 'rejected'
+                            : _status == 'rejected'
                                 ? Colors.red
                                 : Colors.orange,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        widget.tree.status == 'approved'
+                        _status == 'approved'
                             ? l10n.statusApproved
-                            : widget.tree.status == 'rejected'
+                            : _status == 'rejected'
                                 ? l10n.statusRejected
                                 : l10n.statusPending,
                         style: const TextStyle(
@@ -506,13 +529,24 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         // Optimistic update
                         final oldUpvotes = List<String>.from(_upvotes);
                         final oldDownvotes = List<String>.from(_downvotes);
+                        final oldStatus = _status;
 
                         setState(() {
+                          _hasChanged = true;
                           if (_upvotes.contains(_user!.uid)) {
                             _upvotes.remove(_user!.uid);
                           } else {
                             _upvotes.add(_user!.uid);
                             _downvotes.remove(_user!.uid);
+
+                            // Approval logic (same as in repository)
+                            if (_status == 'pending') {
+                              if (_userRoles.contains('admin') ||
+                                  _upvotes.length >=
+                                      AppConstants.requiredTreeUpvotes) {
+                                _status = 'approved';
+                              }
+                            }
                           }
                         });
 
@@ -520,12 +554,14 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           await _treeRepository.upvoteTree(
                             widget.tree.id,
                             _user!.uid,
+                            isAdmin: _userRoles.contains('admin'),
                           );
                         } catch (e) {
                           // Revert if failed
                           setState(() {
                             _upvotes = oldUpvotes;
                             _downvotes = oldDownvotes;
+                            _status = oldStatus;
                           });
 
                           if (!mounted) return;
@@ -577,6 +613,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         final oldDownvotes = List<String>.from(_downvotes);
 
                         setState(() {
+                          _hasChanged = true;
                           if (_downvotes.contains(_user!.uid)) {
                             _downvotes.remove(_user!.uid);
                           } else {
@@ -716,7 +753,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             ? Colors.grey
             : Theme.of(context).primaryColor,
       ),
-    );
+    ));
   }
 
   String _formatDateTime(DateTime dateTime) {

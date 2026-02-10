@@ -134,8 +134,9 @@ class TreeRepository {
   ///
   /// Adds userId to upvotes, removes from downvotes.
   /// If upvotes >= threshold, updates status to approved.
+  /// If isAdmin is true, updates status to approved immediately.
   /// Throws [TreeRepositoryException] if user is creator.
-  Future<void> upvoteTree(String treeId, String userId) async {
+  Future<void> upvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
     final treeRef = _firestore.collection('trees').doc(treeId);
 
     try {
@@ -177,9 +178,10 @@ class TreeRepository {
         final String currentStatus =
             data['status'] ?? AppConstants.statusPending;
 
-        if (currentStatus == AppConstants.statusPending &&
-            upvotes.length >= AppConstants.requiredTreeUpvotes) {
-          updateData['status'] = AppConstants.statusApproved;
+        if (currentStatus == AppConstants.statusPending) {
+          if (isAdmin || upvotes.length >= AppConstants.requiredTreeUpvotes) {
+            updateData['status'] = AppConstants.statusApproved;
+          }
         }
 
         transaction.update(treeRef, updateData);

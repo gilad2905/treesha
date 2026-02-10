@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:treez/constants.dart';
 
 /// TreeRepository that uses Firebase SDK with the custom "treesha" database
 /// for Treez.
@@ -128,8 +129,8 @@ class TreeRepositoryNoConfirm {
   }
 
   /// Upvote a tree using Firebase SDK
-  Future<void> upvoteTree(String treeId, String userId) async {
-    debugPrint('[TreeRepo-SDK] Upvoting tree $treeId for user $userId');
+  Future<void> upvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
+    debugPrint('[TreeRepo-SDK] Upvoting tree $treeId for user $userId (isAdmin: $isAdmin)');
 
     try {
       final treeRef = _firestore.collection('trees').doc(treeId);
@@ -162,6 +163,15 @@ class TreeRepositoryNoConfirm {
         // Update lastVerifiedAt when adding an upvote
         if (isAddingUpvote) {
           updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+        }
+
+        // Auto-approval logic
+        final String currentStatus = data['status'] as String? ?? 'pending';
+
+        if (currentStatus == 'pending') {
+          if (isAdmin || upvotes.length >= AppConstants.requiredTreeUpvotes) {
+            updateData['status'] = 'approved';
+          }
         }
 
         transaction.update(treeRef, updateData);

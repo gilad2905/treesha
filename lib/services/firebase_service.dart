@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:treez/constants.dart';
 
 class FirebaseService {
   // Use the named "treesha" database instead of the default database (Treez)
@@ -260,7 +261,7 @@ class FirebaseService {
         .snapshots();
   }
 
-  Future<void> upvoteTree(String treeId, String userId) async {
+  Future<void> upvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
     final treeRef = _firestore.collection('trees').doc(treeId);
     try {
       await _firestore.runTransaction((transaction) async {
@@ -309,6 +310,15 @@ class FirebaseService {
         // Update lastVerifiedAt when adding an upvote
         if (isAddingUpvote) {
           updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+        }
+
+        // Auto-approval logic
+        final String currentStatus = data['status'] as String? ?? 'pending';
+
+        if (currentStatus == 'pending') {
+          if (isAdmin || upvotes.length >= AppConstants.requiredTreeUpvotes) {
+            updateData['status'] = 'approved';
+          }
         }
 
         transaction.update(treeRef, updateData);
