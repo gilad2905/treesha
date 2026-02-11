@@ -135,7 +135,6 @@ class TreeRepository {
   /// Adds userId to upvotes, removes from downvotes.
   /// If upvotes >= threshold, updates status to approved.
   /// If isAdmin is true, updates status to approved immediately.
-  /// Throws [TreeRepositoryException] if user is creator.
   Future<void> upvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
     final treeRef = _firestore.collection('trees').doc(treeId);
 
@@ -171,7 +170,7 @@ class TreeRepository {
 
         // Update lastVerifiedAt when adding an upvote
         if (isAddingUpvote) {
-          updateData['lastVerifiedAt'] = FieldValue.serverTimestamp();
+          updateData['lastVerifiedAt'] = Timestamp.now();
         }
 
         // Check 2: Auto-approval logic
@@ -181,6 +180,13 @@ class TreeRepository {
         if (currentStatus == AppConstants.statusPending) {
           if (isAdmin || upvotes.length >= AppConstants.requiredTreeUpvotes) {
             updateData['status'] = AppConstants.statusApproved;
+          }
+        } else if (currentStatus == AppConstants.statusApproved) {
+          // If admin removes upvote, check if we should revoke approval
+          if (!isAddingUpvote &&
+              isAdmin &&
+              upvotes.length < AppConstants.requiredTreeUpvotes) {
+            updateData['status'] = AppConstants.statusPending;
           }
         }
 
@@ -206,7 +212,7 @@ class TreeRepository {
   /// Downvote a tree
   ///
   /// Adds userId to downvotes, removes from upvotes.
-  Future<void> downvoteTree(String treeId, String userId) async {
+  Future<void> downvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
     final treeRef = _firestore.collection('trees').doc(treeId);
 
     try {
@@ -232,10 +238,22 @@ class TreeRepository {
           upvotes.remove(userId);
         }
 
-        transaction.update(treeRef, {
+        final updateData = <String, dynamic>{
           'upvotes': upvotes,
           'downvotes': downvotes,
-        });
+        };
+
+        // Revocation logic: If admin downvotes, check if we should revoke approval
+        final String currentStatus =
+            data['status'] ?? AppConstants.statusPending;
+
+        if (currentStatus == AppConstants.statusApproved &&
+            isAdmin &&
+            upvotes.length < AppConstants.requiredTreeUpvotes) {
+          updateData['status'] = AppConstants.statusPending;
+        }
+
+        transaction.update(treeRef, updateData);
       });
     } on TreeRepositoryException {
       rethrow;

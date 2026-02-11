@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -50,7 +51,7 @@ class SvgMarkerLoader {
     } catch (e) {
       // Fallback or rethrow? For now let's just log and return default if possible, 
       // but here we just rethrow so the caller handles it (e.g. by using default marker).
-      print('Error loading SVG marker $assetPath: $e');
+      debugPrint('Error loading SVG marker $assetPath: $e');
       rethrow;
     }
   }

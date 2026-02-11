@@ -535,6 +535,15 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           _hasChanged = true;
                           if (_upvotes.contains(_user!.uid)) {
                             _upvotes.remove(_user!.uid);
+
+                            // Revocation logic (if admin removes vote)
+                            if (_status == 'approved' &&
+                                _userRoles.contains('admin')) {
+                              if (_upvotes.length <
+                                  AppConstants.requiredTreeUpvotes) {
+                                _status = 'pending';
+                              }
+                            }
                           } else {
                             _upvotes.add(_user!.uid);
                             _downvotes.remove(_user!.uid);
@@ -611,6 +620,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         // Optimistic update
                         final oldUpvotes = List<String>.from(_upvotes);
                         final oldDownvotes = List<String>.from(_downvotes);
+                        final oldStatus = _status;
 
                         setState(() {
                           _hasChanged = true;
@@ -619,6 +629,15 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           } else {
                             _downvotes.add(_user!.uid);
                             _upvotes.remove(_user!.uid);
+
+                            // Revocation logic (if admin downvotes)
+                            if (_status == 'approved' &&
+                                _userRoles.contains('admin')) {
+                              if (_upvotes.length <
+                                  AppConstants.requiredTreeUpvotes) {
+                                _status = 'pending';
+                              }
+                            }
                           }
                         });
 
@@ -626,12 +645,14 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                           await _treeRepository.downvoteTree(
                             widget.tree.id,
                             _user!.uid,
+                            isAdmin: _userRoles.contains('admin'),
                           );
                         } catch (e) {
                           // Revert
                           setState(() {
                             _upvotes = oldUpvotes;
                             _downvotes = oldDownvotes;
+                            _status = oldStatus;
                           });
 
                           if (!mounted) return;
