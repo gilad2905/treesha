@@ -358,4 +358,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get posting => 'Posting...';
+
+  @override
+  String createdBy(String name) {
+    return 'Created by $name';
+  }
 }

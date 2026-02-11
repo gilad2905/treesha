@@ -354,4 +354,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get posting => 'מעלה...';
+
+  @override
+  String createdBy(String name) {
+    return 'נוסף על ידי $name';
+  }
 }

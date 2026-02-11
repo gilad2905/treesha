@@ -695,6 +695,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                if (widget.tree.userName.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Text(
+                      l10n.createdBy(widget.tree.userName),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
                 Text(
                   l10n.addedDate(widget.tree.createdAt.toDate().toLocal().toString().split(' ')[0]),
                   style: Theme.of(context).textTheme.bodySmall,

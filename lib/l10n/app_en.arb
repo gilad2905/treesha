@@ -494,5 +494,14 @@
   "posting": "Posting...",
   "@posting": {
     "description": "Message while posting content"
+  },
+  "createdBy": "Created by {name}",
+  "@createdBy": {
+    "description": "Label for creator name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

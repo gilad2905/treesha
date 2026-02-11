@@ -703,6 +703,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Posting...'**
   String get posting;
+
+  /// Label for creator name
+  ///
+  /// In en, this message translates to:
+  /// **'Created by {name}'**
+  String createdBy(String name);
 }
 
 class _AppLocalizationsDelegate

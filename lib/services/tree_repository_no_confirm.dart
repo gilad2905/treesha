@@ -93,6 +93,7 @@ class TreeRepositoryNoConfirm {
         return {
           'id': doc.id,
           'userId': data['userId'] as String? ?? '',
+          'userName': data['userName'] as String? ?? '',
           'name': data['name'] as String? ?? '',
           'fruitType': data['fruitType'] as String? ?? '',
           'latitude': position.latitude,

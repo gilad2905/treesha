@@ -362,6 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return Tree(
           id: data['id'] as String,
           userId: data['userId'] as String,
+          userName: data['userName'] as String? ?? '',
           name: data['name'] as String,
           fruitType: data['fruitType'] as String,
           position: GeoPoint(
@@ -889,6 +890,7 @@ class _MyHomePageState extends State<MyHomePage> {
               
               final docId = await _treeRepository.addTree(
                 userId: _user!.uid,
+                userName: _user!.displayName,
                 name: name,
                 fruitType: fruitType,
                 position: position,

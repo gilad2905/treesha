@@ -25,6 +25,7 @@ class TreeRepository {
   /// [userRole] should be 'admin' or 'user'. Admins' trees are auto-approved.
   Future<String> addTree({
     required String userId,
+    String? userName,
     required String name,
     required String fruitType,
     required Position position,
@@ -34,7 +35,7 @@ class TreeRepository {
     print('[TreeRepository] =====================================');
     print('[TreeRepository] ADD TREE - NEW APPROACH');
     print('[TreeRepository] =====================================');
-    print('[TreeRepository]   User: $userId');
+    print('[TreeRepository]   User: $userId ($userName)');
     print('[TreeRepository]   Name: $name');
     print('[TreeRepository]   Type: $fruitType');
     print(
@@ -57,6 +58,7 @@ class TreeRepository {
     final now = DateTime.now();
     final data = {
       'userId': userId,
+      'userName': userName ?? '',
       'name': name,
       'fruitType': fruitType,
       'position': GeoPoint(position.latitude, position.longitude),

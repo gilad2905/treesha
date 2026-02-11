@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Tree {
   final String id;
   final String userId; // ID of the user who created the tree
+  final String userName; // Name of the user who created the tree
   final String name;
   final String fruitType;
   final GeoPoint position;
@@ -19,6 +20,7 @@ class Tree {
   Tree({
     required this.id,
     required this.userId,
+    this.userName = '',
     required this.name,
     required this.fruitType,
     required this.position,
@@ -36,6 +38,7 @@ class Tree {
     return Tree(
       id: doc.id,
       userId: data['userId'] ?? '',
+      userName: data['userName'] ?? '',
       name: data['name'] ?? '',
       fruitType: data['fruitType'] ?? '',
       position: data['position'] ?? const GeoPoint(0, 0),

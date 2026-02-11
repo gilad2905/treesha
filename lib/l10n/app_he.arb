@@ -100,5 +100,6 @@
   "beTheFirstToShare": "היה הראשון לשתף!",
   "deletePost": "מחק פוסט",
   "deletePostConfirmation": "האם אתה בטוח שברצונך למחוק את הפוסט הזה?",
-  "posting": "מעלה..."
+  "posting": "מעלה...",
+  "createdBy": "נוסף על ידי {name}"
 }
