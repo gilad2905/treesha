@@ -106,14 +106,15 @@ class _FilterDialogState extends State<FilterDialog> {
                 children: widget.availableFruitTypes.map((fruitType) {
                   final isSelected = _selectedFruitTypes.contains(fruitType);
 
-                  // Find the fruit in allFruits to get the Hebrew name
+                  // Find the fruit in allFruits to get the translated name
                   String displayName = fruitType;
-                  if (Localizations.localeOf(context).languageCode == 'he') {
+                  final langCode = Localizations.localeOf(context).languageCode;
+                  if (langCode == 'he' || langCode == 'ru') {
                     try {
                       final fruit = widget.allFruits.firstWhere(
                         (f) => f.type.toLowerCase() == fruitType.toLowerCase(),
                       );
-                      displayName = fruit.typeHe;
+                      displayName = langCode == 'he' ? fruit.typeHe : fruit.typeRu;
                     } catch (e) {
                       // Fallback to English if not found in official list
                     }

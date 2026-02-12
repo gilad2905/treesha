@@ -6,7 +6,7 @@ class LocaleProvider extends ChangeNotifier {
   Locale get locale => _locale;
 
   void setLocale(Locale locale) {
-    if (!['en', 'he'].contains(locale.languageCode)) {
+    if (!['en', 'he', 'ru'].contains(locale.languageCode)) {
       return;
     }
     _locale = locale;
