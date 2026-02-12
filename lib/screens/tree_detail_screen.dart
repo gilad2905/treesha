@@ -54,6 +54,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   bool _isAddingPost = false;
   String? _fruitIconAsset;
   String? _fruitTypeHe;
+  String? _fruitTypeRu;
 
   @override
   void initState() {
@@ -101,11 +102,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
       String? iconName;
       String? hebName;
+      String? ruName;
       for (var item in data) {
         if (item['fruit_type'].toString().toLowerCase() ==
             widget.tree.fruitType.toLowerCase()) {
           iconName = item['icon'];
           hebName = item['fruit_type_he'];
+          ruName = item['fruit_type_ru'];
           break;
         }
       }
@@ -113,6 +116,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       if (mounted) {
         setState(() {
           _fruitTypeHe = hebName;
+          _fruitTypeRu = ruName;
           if (iconName != null) {
             _fruitIconAsset = 'assets/fruit_icons/$iconName';
           } else {
@@ -411,9 +415,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
             icon: const Icon(Icons.share, color: Colors.white),
             tooltip: l10n.share,
             onPressed: () {
-              final fruit = (Localizations.localeOf(context).languageCode == 'he' && _fruitTypeHe != null)
+              final languageCode = Localizations.localeOf(context).languageCode;
+              final fruit = (languageCode == 'he' && _fruitTypeHe != null)
                   ? _fruitTypeHe!
-                  : widget.tree.fruitType;
+                  : (languageCode == 'ru' && _fruitTypeRu != null)
+                      ? _fruitTypeRu!
+                      : widget.tree.fruitType;
               final shareText = l10n.shareText(fruit);
               final lat = widget.tree.position.latitude;
               final lng = widget.tree.position.longitude;
@@ -465,10 +472,12 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                       ),
                     Expanded(
                       child: Text(
-                        (Localizations.localeOf(context).languageCode == 'he' &&
-                                _fruitTypeHe != null)
-                            ? _fruitTypeHe!
-                            : widget.tree.fruitType,
+                        () {
+                          final languageCode = Localizations.localeOf(context).languageCode;
+                          if (languageCode == 'he' && _fruitTypeHe != null) return _fruitTypeHe!;
+                          if (languageCode == 'ru' && _fruitTypeRu != null) return _fruitTypeRu!;
+                          return widget.tree.fruitType;
+                        }(),
                         style: Theme.of(
                           context,
                         ).textTheme.headlineMedium?.copyWith(

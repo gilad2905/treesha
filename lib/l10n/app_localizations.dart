@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_he.dart';
+import 'app_localizations_ru.dart';
 
 // ignore_for_file: type=lint
 
@@ -96,6 +97,7 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('he'),
+    Locale('ru'),
   ];
 
   /// Fruit type: Olive
@@ -349,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'עברית'**
   String get hebrew;
+
+  /// Russian language name
+  ///
+  /// In en, this message translates to:
+  /// **'Russian'**
+  String get russian;
 
   /// Filters dialog title
   ///
@@ -722,7 +730,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'he'].contains(locale.languageCode);
+      <String>['en', 'he', 'ru'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -735,6 +743,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'he':
       return AppLocalizationsHe();
+    case 'ru':
+      return AppLocalizationsRu();
   }
 
   throw FlutterError(

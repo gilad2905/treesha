@@ -161,6 +161,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hebrew => 'עברית';
 
   @override
+  String get russian => 'Russian';
+
+  @override
   String get filters => 'Filters';
 
   @override

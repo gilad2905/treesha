@@ -117,6 +117,7 @@ class MyApp extends StatelessWidget {
           supportedLocales: const [
             Locale('en'), // English
             Locale('he'), // Hebrew
+            Locale('ru'), // Russian
           ],
 
           theme: ThemeData(
@@ -583,6 +584,10 @@ class _MyHomePageState extends State<MyHomePage> {
               PopupMenuItem<Locale>(
                 value: const Locale('he'),
                 child: Text(l10n.hebrew),
+              ),
+              PopupMenuItem<Locale>(
+                value: const Locale('ru'),
+                child: Text(l10n.russian),
               ),
             ],
           ),

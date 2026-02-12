@@ -135,67 +135,43 @@ class TreeRepository {
   /// Upvote a tree
   ///
   /// Adds userId to upvotes, removes from downvotes.
-  /// If upvotes >= threshold, updates status to approved.
-  /// If isAdmin is true, updates status to approved immediately.
   Future<void> upvoteTree(String treeId, String userId, {bool isAdmin = false}) async {
     final treeRef = _firestore.collection('trees').doc(treeId);
 
     try {
-      await _firestore.runTransaction((transaction) async {
-        final snapshot = await transaction.get(treeRef);
+      // 1. Perform atomic update for votes
+      await treeRef.update({
+        'upvotes': FieldValue.arrayUnion([userId]),
+        'downvotes': FieldValue.arrayRemove([userId]),
+        'lastVerifiedAt': FieldValue.serverTimestamp(),
+      });
 
-        if (!snapshot.exists) {
-          throw TreeRepositoryException(
-            'Tree not found',
-            code: 'not-found',
-          );
-        }
-
+      // 2. Handle Auto-approval (requires a separate read/write or transaction)
+      // We do this after the vote to ensure the vote counts
+      final snapshot = await treeRef.get();
+      if (snapshot.exists) {
         final data = snapshot.data()!;
+        final List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+        final String currentStatus = data['status'] ?? AppConstants.statusPending;
 
-        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
-        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
-
-        bool isAddingUpvote = !upvotes.contains(userId);
-
-        if (upvotes.contains(userId)) {
-          upvotes.remove(userId);
-        } else {
-          upvotes.add(userId);
-          downvotes.remove(userId);
-        }
-
-        final updateData = <String, dynamic>{
-          'upvotes': upvotes,
-          'downvotes': downvotes,
-        };
-
-        // Update lastVerifiedAt when adding an upvote
-        if (isAddingUpvote) {
-          updateData['lastVerifiedAt'] = Timestamp.now();
-        }
-
-        // Check 2: Auto-approval logic
-        final String currentStatus =
-            data['status'] ?? AppConstants.statusPending;
+        Map<String, dynamic> statusUpdate = {};
 
         if (currentStatus == AppConstants.statusPending) {
           if (isAdmin || upvotes.length >= AppConstants.requiredTreeUpvotes) {
-            updateData['status'] = AppConstants.statusApproved;
+            statusUpdate['status'] = AppConstants.statusApproved;
           }
         } else if (currentStatus == AppConstants.statusApproved) {
-          // If admin removes upvote, check if we should revoke approval
-          if (!isAddingUpvote &&
-              isAdmin &&
-              upvotes.length < AppConstants.requiredTreeUpvotes) {
-            updateData['status'] = AppConstants.statusPending;
+          // If admin removed upvote (not possible via arrayUnion, but for completeness)
+          // or if we want to ensure revocation logic:
+          if (isAdmin && !upvotes.contains(userId) && upvotes.length < AppConstants.requiredTreeUpvotes) {
+            statusUpdate['status'] = AppConstants.statusPending;
           }
         }
 
-        transaction.update(treeRef, updateData);
-      });
-    } on TreeRepositoryException {
-      rethrow;
+        if (statusUpdate.isNotEmpty) {
+          await treeRef.update(statusUpdate);
+        }
+      }
     } on FirebaseException catch (e) {
       throw TreeRepositoryException(
         'Failed to upvote tree: ${e.message}',
@@ -218,47 +194,26 @@ class TreeRepository {
     final treeRef = _firestore.collection('trees').doc(treeId);
 
     try {
-      await _firestore.runTransaction((transaction) async {
-        final snapshot = await transaction.get(treeRef);
-
-        if (!snapshot.exists) {
-          throw TreeRepositoryException(
-            'Tree not found',
-            code: 'not-found',
-          );
-        }
-
-        final data = snapshot.data()!;
-        
-        List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
-        List<String> downvotes = List<String>.from(data['downvotes'] ?? []);
-
-        if (downvotes.contains(userId)) {
-          downvotes.remove(userId);
-        } else {
-          downvotes.add(userId);
-          upvotes.remove(userId);
-        }
-
-        final updateData = <String, dynamic>{
-          'upvotes': upvotes,
-          'downvotes': downvotes,
-        };
-
-        // Revocation logic: If admin downvotes, check if we should revoke approval
-        final String currentStatus =
-            data['status'] ?? AppConstants.statusPending;
-
-        if (currentStatus == AppConstants.statusApproved &&
-            isAdmin &&
-            upvotes.length < AppConstants.requiredTreeUpvotes) {
-          updateData['status'] = AppConstants.statusPending;
-        }
-
-        transaction.update(treeRef, updateData);
+      // 1. Perform atomic update for votes
+      await treeRef.update({
+        'downvotes': FieldValue.arrayUnion([userId]),
+        'upvotes': FieldValue.arrayRemove([userId]),
       });
-    } on TreeRepositoryException {
-      rethrow;
+
+      // 2. Handle revocation logic if admin downvotes
+      if (isAdmin) {
+        final snapshot = await treeRef.get();
+        if (snapshot.exists) {
+          final data = snapshot.data()!;
+          final List<String> upvotes = List<String>.from(data['upvotes'] ?? []);
+          final String currentStatus = data['status'] ?? AppConstants.statusPending;
+
+          if (currentStatus == AppConstants.statusApproved &&
+              upvotes.length < AppConstants.requiredTreeUpvotes) {
+            await treeRef.update({'status': AppConstants.statusPending});
+          }
+        }
+      }
     } on FirebaseException catch (e) {
       throw TreeRepositoryException(
         'Failed to downvote tree: ${e.message}',

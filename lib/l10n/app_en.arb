@@ -214,6 +214,10 @@
   "@hebrew": {
     "description": "Hebrew language name in Hebrew"
   },
+  "russian": "Russian",
+  "@russian": {
+    "description": "Russian language name"
+  },
 
   "filters": "Filters",
   "@filters": {

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,8 +32,8 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
   String? _selectedFruitType; // Store the final selected fruit type
 
   List<Fruit> _allFruits = []; // All fruits loaded from asset
-  List<Fruit> _filteredFruits = []; // Fruits filtered by user input
   List<XFile> _images = []; // Multiple images
+  final SearchController _searchController = SearchController();
 
   @override
   void initState() {
@@ -45,35 +46,28 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
     _nameController.dispose();
     _fruitTypeController.dispose();
     _commentController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadAllFruits() async {
     try {
       final loadedFruits = await FruitService.loadFruits();
-      setState(() {
-        _allFruits = loadedFruits;
-        _filteredFruits = loadedFruits; // Initially show all fruits
-      });
+      if (mounted) {
+        setState(() {
+          _allFruits = loadedFruits;
+        });
+      }
     } catch (e) {
-      // Error loading all fruits: $e
+      debugPrint('Error loading fruits: $e');
     }
   }
 
-  void _onFruitTypeChanged(String pattern) {
-    setState(() {
-      if (pattern.isEmpty) {
-        _filteredFruits = _allFruits;
-      } else {
-        _filteredFruits = _allFruits
-            .where(
-              (fruit) =>
-                  fruit.type.toLowerCase().contains(pattern.toLowerCase()),
-            )
-            .toList();
-      }
-      _selectedFruitType = null; // Clear selected fruit type when user types
-    });
+  String _getFruitDisplayName(Fruit fruit) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (languageCode == 'he' && fruit.typeHe.isNotEmpty) return fruit.typeHe;
+    if (languageCode == 'ru' && fruit.typeRu.isNotEmpty) return fruit.typeRu;
+    return fruit.type;
   }
 
   Future<void> _pickImages() async {
@@ -94,197 +88,190 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return WillPopScope(
-      onWillPop: () async {
-        // Prevent back button during loading
-        if (_isLoading) {
-          debugPrint(
-            '[AddTreeDialog] Back button pressed during loading - preventing dismissal',
-          );
+    return PopScope(
+      canPop: !_isLoading,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isLoading) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(l10n.pleaseWait),
               duration: const Duration(seconds: 2),
             ),
           );
-          return false;
         }
-        return true;
       },
       child: AlertDialog(
         title: Text(l10n.addTree),
-        content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(labelText: l10n.treeName),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.pleaseEnterTreeName;
-                    }
-                    return null;
-                  },
-                ),
-                // Manual TypeAhead-like functionality
-                TextFormField(
-                  controller: _fruitTypeController,
-                  decoration: InputDecoration(
-                    labelText: l10n.fruitType,
-                    hintText: l10n.searchFruitType,
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9,
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.treeName,
+                      prefixIcon: const Icon(Icons.drive_file_rename_outline),
+                      border: const OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return l10n.pleaseEnterTreeName;
+                      }
+                      return null;
+                    },
                   ),
-                  onChanged: _onFruitTypeChanged,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return l10n.pleaseEnterFruitType;
-                    }
-                    return null; // Any non-empty string is valid
-                  },
-                ),
-                // Display suggestions
-                if (_fruitTypeController.text.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxHeight: 200,
-                    ), // Limit height of suggestions
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: _filteredFruits.map((fruit) {
-                          String displayName =
-                              (Localizations.localeOf(context).languageCode ==
-                                          'he' &&
-                                      fruit.typeHe.isNotEmpty)
-                                  ? fruit.typeHe
-                                  : fruit.type;
-                          return ListTile(
-                            title: Text(displayName),
-                            subtitle: Text(fruit.edibleSeason),
-                            onTap: () {
-                              setState(() {
-                                _fruitTypeController.text = displayName;
-                                _selectedFruitType =
-                                    fruit.type; // Confirm selection (English)
-                                _filteredFruits =
-                                    []; // Clear suggestions after selection
-                              });
-                            },
+                  const SizedBox(height: 16),
+                  SearchAnchor(
+                    searchController: _searchController,
+                    builder: (context, controller) {
+                      return TextFormField(
+                        controller: _fruitTypeController,
+                        onTap: () {
+                          controller.openView();
+                        },
+                        onChanged: (value) {
+                          controller.openView();
+                        },
+                        decoration: InputDecoration(
+                          labelText: l10n.fruitType,
+                          hintText: l10n.searchFruitType,
+                          prefixIcon: const Icon(Icons.search),
+                          border: const OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return l10n.pleaseEnterFruitType;
+                          }
+                          return null;
+                        },
+                      );
+                    },
+                    suggestionsBuilder: (context, controller) {
+                      final String pattern = controller.text.toLowerCase();
+                      final filtered = _allFruits.where((fruit) {
+                        return fruit.type.toLowerCase().contains(pattern) ||
+                               fruit.typeHe.toLowerCase().contains(pattern) ||
+                               fruit.typeRu.toLowerCase().contains(pattern);
+                      }).toList();
+
+                      return filtered.map((fruit) {
+                        final displayName = _getFruitDisplayName(fruit);
+                        return ListTile(
+                          title: Text(displayName),
+                          subtitle: Text(fruit.edibleSeason),
+                          onTap: () {
+                            setState(() {
+                              _fruitTypeController.text = displayName;
+                              _selectedFruitType = fruit.type;
+                            });
+                            controller.closeView(displayName);
+                          },
+                        );
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _commentController,
+                    decoration: InputDecoration(
+                      labelText: l10n.commentOptional,
+                      hintText: l10n.addCommentHint,
+                      border: const OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.photos(_images.length),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      TextButton.icon(
+                        onPressed: _isLoading ? null : _pickImages,
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: Text(l10n.addPhotos),
+                      ),
+                    ],
+                  ),
+                  if (_images.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _images.length,
+                        separatorBuilder: (context, index) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          final image = _images[index];
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: kIsWeb
+                                      ? Image.network(image.path, fit: BoxFit.cover)
+                                      : Image.file(File(image.path), fit: BoxFit.cover),
+                                ),
+                              ),
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.7),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                                    onPressed: () => _removeImage(index),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ),
+                              ),
+                            ],
                           );
-                        }).toList(),
+                        },
                       ),
                     ),
-                  ),
-                const SizedBox(height: 20),
-                // Comment field
-                TextFormField(
-                  controller: _commentController,
-                  decoration: InputDecoration(
-                    labelText: l10n.commentOptional,
-                    hintText: l10n.addCommentHint,
-                    border: const OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 20),
-                // Photos section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.photos(_images.length),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    TextButton.icon(
-                      onPressed: _isLoading ? null : _pickImages,
-                      icon: const Icon(Icons.add_photo_alternate),
-                      label: Text(l10n.addPhotos),
-                    ),
                   ],
-                ),
-                if (_images.isNotEmpty)
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _images.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final image = entry.value;
-                      return Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                image.path,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.image, size: 50);
-                                },
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            right: 4,
-                            top: -4,
-                            child: IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red),
-                              onPressed: () => _removeImage(index),
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-              ],
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: _isLoading
-                ? null
-                : () {
-                    debugPrint('[AddTreeDialog] Cancel button pressed');
-                    Navigator.of(context).pop();
-                  },
-            child: Text(
-              l10n.cancel,
-              style: TextStyle(color: _isLoading ? Colors.grey : null),
-            ),
+            onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: _isLoading
                 ? null
                 : () async {
                     if (_formKey.currentState!.validate()) {
-                      debugPrint('[AddTreeDialog] Form validated, starting save...');
-                      debugPrint(
-                        '[AddTreeDialog] Tree name: ${_nameController.text}',
-                      );
-                      debugPrint(
-                        '[AddTreeDialog] Fruit type: ${_selectedFruitType ?? _fruitTypeController.text}',
-                      );
-                      debugPrint('[AddTreeDialog] Images: ${_images.length}');
-                      debugPrint(
-                        '[AddTreeDialog] Comment: ${_commentController.text}',
-                      );
-
                       setState(() => _isLoading = true);
                       try {
                         String finalFruitType = _selectedFruitType ?? _fruitTypeController.text;
                         
-                        // If it's a custom fruit type (not selected from list), format it
                         if (_selectedFruitType == null) {
-                          // Remove symbols and format to CamelCase
                           finalFruitType = finalFruitType
-                              .replaceAll(RegExp(r'[^a-zA-Z0-6\s]'), '') // Remove symbols
+                              .replaceAll(RegExp(r'[^a-zA-Z0-6\s\u0590-\u05FF\u0400-\u04FF]'), '')
                               .split(' ')
                               .where((word) => word.isNotEmpty)
                               .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
@@ -298,52 +285,29 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                           _commentController.text,
                         );
 
-                        debugPrint(
-                          '[AddTreeDialog] onAdd completed with result: $result',
-                        );
-
                         if (result && mounted) {
-                          debugPrint('[AddTreeDialog] Success, closing dialog');
                           Navigator.of(context).pop();
                         } else if (!result && mounted) {
-                          debugPrint('[AddTreeDialog] Failed to save tree');
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.failedToSaveTree),
-                              duration: const Duration(seconds: 3),
-                            ),
+                            SnackBar(content: Text(l10n.failedToSaveTree)),
                           );
                         }
-                      } catch (e, stackTrace) {
-                        debugPrint('[AddTreeDialog] ERROR: Exception in onAdd: $e');
-                        debugPrint('[AddTreeDialog] Stack trace: $stackTrace');
-
+                      } catch (e) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Error: ${e.toString()}'),
-                              duration: const Duration(seconds: 5),
-                            ),
+                            SnackBar(content: Text('Error: $e')),
                           );
                         }
                       } finally {
-                        if (mounted) {
-                          setState(() => _isLoading = false);
-                          debugPrint('[AddTreeDialog] Loading state reset');
-                        }
+                        if (mounted) setState(() => _isLoading = false);
                       }
-                    } else {
-                      debugPrint('[AddTreeDialog] Form validation failed');
                     }
                   },
             child: _isLoading
                 ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                 : Text(l10n.add),
           ),

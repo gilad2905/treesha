@@ -160,6 +160,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get hebrew => 'עברית';
 
   @override
+  String get russian => 'רוסית';
+
+  @override
   String get filters => 'מסננים';
 
   @override
