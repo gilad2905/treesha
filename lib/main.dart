@@ -16,6 +16,7 @@ import 'dart:convert'; // Import for JSON decoding
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -35,6 +36,7 @@ import 'package:treez/models/tree_model.dart';
 
 import 'package:treez/widgets/add_tree_dialog.dart';
 import 'package:treez/widgets/filter_dialog.dart';
+import 'package:treez/widgets/disclaimer_dialog.dart';
 import 'package:treez/screens/tree_detail_screen.dart';
 import 'package:treez/models/tree_filters.dart';
 import 'package:treez/utils/svg_marker_loader.dart'; // Import the new utility
@@ -182,6 +184,10 @@ class _MyHomePageState extends State<MyHomePage> {
     _determinePosition();
     _loadOfficialFruits().then((_) => _loadTrees()); // Load official list then trees
     _loadFruitIcons(); // Load fruit SVG icons
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showDisclaimer();
+    });
 
     _authService.user.listen((user) async {
       if (!mounted) return;
@@ -547,6 +553,24 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> _showDisclaimer({bool force = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool alreadyAccepted = prefs.getBool('disclaimer_accepted') ?? false;
+
+    if (!alreadyAccepted || force) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => DisclaimerDialog(
+          onAccepted: () async {
+            await prefs.setBool('disclaimer_accepted', true);
+          },
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -558,13 +582,16 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF2E7D32),
         elevation: 2,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/icon/app_icon.png',
-              fit: BoxFit.contain,
+        leading: GestureDetector(
+          onTap: () => _showDisclaimer(force: true),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/icon/app_icon.png',
+                fit: BoxFit.contain,
+              ),
             ),
           ),
         ),

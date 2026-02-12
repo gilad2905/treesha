@@ -1,20 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleProvider extends ChangeNotifier {
-  Locale _locale = const Locale('en');
+  Locale _locale = const Locale('he');
+  static const String _localeKey = 'selected_locale';
 
   Locale get locale => _locale;
 
-  void setLocale(Locale locale) {
+  LocaleProvider() {
+    _loadLocale();
+  }
+
+  Future<void> _loadLocale() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? languageCode = prefs.getString(_localeKey);
+    if (languageCode != null) {
+      _locale = Locale(languageCode);
+      notifyListeners();
+    }
+  }
+
+  Future<void> setLocale(Locale locale) async {
     if (!['en', 'he', 'ru'].contains(locale.languageCode)) {
       return;
     }
     _locale = locale;
     notifyListeners();
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_localeKey, locale.languageCode);
+    // Reset disclaimer on language switch so they see it in their new language
+    await prefs.setBool('disclaimer_accepted', false);
   }
 
-  void clearLocale() {
-    _locale = const Locale('en');
+  Future<void> clearLocale() async {
+    _locale = const Locale('he');
     notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_localeKey);
   }
 }

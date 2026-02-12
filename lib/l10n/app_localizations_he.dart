@@ -228,10 +228,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get addCommentPhotos => 'הוסף תמונות/הערה';
 
   @override
-  String get zoomCloser => 'אנא התקרב במפה לדיוק מירבי 🔎';
+  String get zoomCloser => 'אנא התקרב במפה (זום) לדיוק מירבי 🔎';
 
   @override
-  String get longClickToAdd => 'להוספה לחץ לחיצה ארוכה על המיקום המדויק';
+  String get longClickToAdd => 'להוספת העץ לחץ לחיצה ארוכה על המיקום המדויק';
 
   @override
   String get updateRequired => 'נדרש עדכון גרסה';
@@ -362,4 +362,59 @@ class AppLocalizationsHe extends AppLocalizations {
   String createdBy(String name) {
     return 'נוסף על ידי $name';
   }
+
+  @override
+  String get disclaimerTitle => '🌿 הצהרת ליקוט ושימוש';
+
+  @override
+  String get disclaimerSubtitle => 'הודעה חשובה';
+
+  @override
+  String get disclaimerAgreement =>
+      'אפליקציה זו מספקת מידע המופק על ידי משתמשים לגבי עצים, עשבי תיבול וצמחים אחרים שעשויים להיות אכילים. התוכן באפליקציה זו נועד למטרות מידע בלבד.\n\nבשימוש באפליקציה זו, הינך מאשר ומסכים כי:';
+
+  @override
+  String get disclaimerPoint1Title => '🌱 זיהוי צמחים הוא באחריותך.';
+
+  @override
+  String get disclaimerPoint1Body =>
+      'ודא תמיד באופן עצמאי את זהות כל צמח לפני צריכתו. לצמחי מאכל רבים יש כפילים רעילים.';
+
+  @override
+  String get disclaimerPoint2Title =>
+      '⚠️ אל תצרוך אף פרי, עשב או צמח אלא אם כן אתה בטוח לחלוטין שהוא בטוח.';
+
+  @override
+  String get disclaimerPoint2Body => 'כשיש ספק, אל תאכל.';
+
+  @override
+  String get disclaimerPoint3Title => '🏡 כבד רכוש פרטי.';
+
+  @override
+  String get disclaimerPoint3Body =>
+      'אל תיכנס לשטח פרטי ללא רשות. אתה האחראי הבלעדי לוודא שיש לך גישה חוקית לכל מיקום.';
+
+  @override
+  String get disclaimerPoint4Title => '🧪 סיכוני בריאות ובטיחות.';
+
+  @override
+  String get disclaimerPoint4Body =>
+      'צמחים מסוימים עלולים לגרום לתגובות אלרגיות או להשפעות בריאותיות שליליות. האפליקציה אינה מספקת ייעוץ רפואי.';
+
+  @override
+  String get disclaimerPoint5Title => '👥 תוכן גולשים.';
+
+  @override
+  String get disclaimerPoint5Body =>
+      'מיקומים, תיאורים ומידע על אכילה נשלחים על ידי משתמשים ועשויים להיות לא מדויקים, חלקיים או מיושנים.';
+
+  @override
+  String get disclaimerLiability =>
+      'בעלי האפליקציה, המפתחים והתורמים אינם נושאים בכל אחריות או חבות לכל פציעה, מחלה, נזק, בעיות משפטיות או אובדן הנובעים מהשימוש באפליקציה זו או מהסתמכות על תוכנה.';
+
+  @override
+  String get disclaimerRisk => 'השימוש באחריותך בלבד.';
+
+  @override
+  String get iUnderstood => 'הבנתי';
 }

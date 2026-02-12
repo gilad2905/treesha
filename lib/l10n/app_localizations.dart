@@ -717,6 +717,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Created by {name}'**
   String createdBy(String name);
+
+  /// No description provided for @disclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🌿 Foraging & Use Disclaimer'**
+  String get disclaimerTitle;
+
+  /// No description provided for @disclaimerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Important Notice'**
+  String get disclaimerSubtitle;
+
+  /// No description provided for @disclaimerAgreement.
+  ///
+  /// In en, this message translates to:
+  /// **'This app provides user-generated information about trees, herbs, and other plants that may be edible. The content in this app is for informational purposes only.\n\nBy using this app, you acknowledge and agree that:'**
+  String get disclaimerAgreement;
+
+  /// No description provided for @disclaimerPoint1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'🌱 Plant identification is your responsibility.'**
+  String get disclaimerPoint1Title;
+
+  /// No description provided for @disclaimerPoint1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Always independently verify the identity of any plant before consuming it. Many edible plants have toxic look-alikes.'**
+  String get disclaimerPoint1Body;
+
+  /// No description provided for @disclaimerPoint2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ Do not consume any fruit, herb, or plant unless you are absolutely certain it is safe.'**
+  String get disclaimerPoint2Title;
+
+  /// No description provided for @disclaimerPoint2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'When in doubt, do not eat it.'**
+  String get disclaimerPoint2Body;
+
+  /// No description provided for @disclaimerPoint3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'🏡 Respect private property.'**
+  String get disclaimerPoint3Title;
+
+  /// No description provided for @disclaimerPoint3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not enter private land without permission. You are solely responsible for ensuring you have legal access to any location.'**
+  String get disclaimerPoint3Body;
+
+  /// No description provided for @disclaimerPoint4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'🧪 Health & safety risks.'**
+  String get disclaimerPoint4Title;
+
+  /// No description provided for @disclaimerPoint4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Some plants may cause allergic reactions or adverse health effects. The app does not provide medical advice.'**
+  String get disclaimerPoint4Body;
+
+  /// No description provided for @disclaimerPoint5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'👥 User-generated content.'**
+  String get disclaimerPoint5Title;
+
+  /// No description provided for @disclaimerPoint5Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Locations, descriptions, and edibility information are submitted by users and may be inaccurate, incomplete, or outdated.'**
+  String get disclaimerPoint5Body;
+
+  /// No description provided for @disclaimerLiability.
+  ///
+  /// In en, this message translates to:
+  /// **'The app owners, developers, and contributors assume no responsibility or liability for any injury, illness, damage, legal issues, or loss resulting from the use of this app or reliance on its content.'**
+  String get disclaimerLiability;
+
+  /// No description provided for @disclaimerRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at your own risk.'**
+  String get disclaimerRisk;
+
+  /// No description provided for @iUnderstood.
+  ///
+  /// In en, this message translates to:
+  /// **'I understood'**
+  String get iUnderstood;
 }
 
 class _AppLocalizationsDelegate

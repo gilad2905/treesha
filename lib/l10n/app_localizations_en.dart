@@ -366,4 +366,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String createdBy(String name) {
     return 'Created by $name';
   }
+
+  @override
+  String get disclaimerTitle => '🌿 Foraging & Use Disclaimer';
+
+  @override
+  String get disclaimerSubtitle => 'Important Notice';
+
+  @override
+  String get disclaimerAgreement =>
+      'This app provides user-generated information about trees, herbs, and other plants that may be edible. The content in this app is for informational purposes only.\n\nBy using this app, you acknowledge and agree that:';
+
+  @override
+  String get disclaimerPoint1Title =>
+      '🌱 Plant identification is your responsibility.';
+
+  @override
+  String get disclaimerPoint1Body =>
+      'Always independently verify the identity of any plant before consuming it. Many edible plants have toxic look-alikes.';
+
+  @override
+  String get disclaimerPoint2Title =>
+      '⚠️ Do not consume any fruit, herb, or plant unless you are absolutely certain it is safe.';
+
+  @override
+  String get disclaimerPoint2Body => 'When in doubt, do not eat it.';
+
+  @override
+  String get disclaimerPoint3Title => '🏡 Respect private property.';
+
+  @override
+  String get disclaimerPoint3Body =>
+      'Do not enter private land without permission. You are solely responsible for ensuring you have legal access to any location.';
+
+  @override
+  String get disclaimerPoint4Title => '🧪 Health & safety risks.';
+
+  @override
+  String get disclaimerPoint4Body =>
+      'Some plants may cause allergic reactions or adverse health effects. The app does not provide medical advice.';
+
+  @override
+  String get disclaimerPoint5Title => '👥 User-generated content.';
+
+  @override
+  String get disclaimerPoint5Body =>
+      'Locations, descriptions, and edibility information are submitted by users and may be inaccurate, incomplete, or outdated.';
+
+  @override
+  String get disclaimerLiability =>
+      'The app owners, developers, and contributors assume no responsibility or liability for any injury, illness, damage, legal issues, or loss resulting from the use of this app or reliance on its content.';
+
+  @override
+  String get disclaimerRisk => 'Use at your own risk.';
+
+  @override
+  String get iUnderstood => 'I understood';
 }

@@ -507,5 +507,21 @@
         "type": "String"
       }
     }
-  }
+  },
+  "disclaimerTitle": "🌿 Foraging & Use Disclaimer",
+  "disclaimerSubtitle": "Important Notice",
+  "disclaimerAgreement": "This app provides user-generated information about trees, herbs, and other plants that may be edible. The content in this app is for informational purposes only.\n\nBy using this app, you acknowledge and agree that:",
+  "disclaimerPoint1Title": "🌱 Plant identification is your responsibility.",
+  "disclaimerPoint1Body": "Always independently verify the identity of any plant before consuming it. Many edible plants have toxic look-alikes.",
+  "disclaimerPoint2Title": "⚠️ Do not consume any fruit, herb, or plant unless you are absolutely certain it is safe.",
+  "disclaimerPoint2Body": "When in doubt, do not eat it.",
+  "disclaimerPoint3Title": "🏡 Respect private property.",
+  "disclaimerPoint3Body": "Do not enter private land without permission. You are solely responsible for ensuring you have legal access to any location.",
+  "disclaimerPoint4Title": "🧪 Health & safety risks.",
+  "disclaimerPoint4Body": "Some plants may cause allergic reactions or adverse health effects. The app does not provide medical advice.",
+  "disclaimerPoint5Title": "👥 User-generated content.",
+  "disclaimerPoint5Body": "Locations, descriptions, and edibility information are submitted by users and may be inaccurate, incomplete, or outdated.",
+  "disclaimerLiability": "The app owners, developers, and contributors assume no responsibility or liability for any injury, illness, damage, legal issues, or loss resulting from the use of this app or reliance on its content.",
+  "disclaimerRisk": "Use at your own risk.",
+  "iUnderstood": "I understood"
 }
