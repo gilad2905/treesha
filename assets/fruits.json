@@ -36,5 +36,16 @@
   { "fruit_type": "Papaya", "fruit_type_he": "פפאיה", "fruit_type_ru": "Папайя", "fruit_edible_season": "All Year", "icon": "papaya.svg" },
   { "fruit_type": "Dragon Fruit (Pitaya)", "fruit_type_he": "פרי הדרקון (פיטאיה)", "fruit_type_ru": "Питайя", "fruit_edible_season": "Summer–Autumn", "icon": "pitaya.svg" },
   { "fruit_type": "Jackfruit", "fruit_type_he": "ג'קפרוט", "fruit_type_ru": "Джекфрут", "fruit_edible_season": "Summer", "icon": "jackfruit.svg" },
-  { "fruit_type": "Longan", "fruit_type_he": "לונגן", "fruit_type_ru": "Лонган", "fruit_edible_season": "Summer", "icon": "longan.svg" }
+  { "fruit_type": "Longan", "fruit_type_he": "לונגן", "fruit_type_ru": "Лонган", "fruit_edible_season": "Summer", "icon": "longan.svg" },
+  { "fruit_type": "Rosemary", "fruit_type_he": "רוזמרין", "fruit_type_ru": "Розмарин", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Wild Mallow (Khubeza)", "fruit_type_he": "חלמית (חוביזה)", "fruit_type_ru": "Мальва (Хуббеза)", "fruit_edible_season": "Winter–Spring" },
+  { "fruit_type": "Lemongrass", "fruit_type_he": "למון גראס", "fruit_type_ru": "Лемонграсс", "fruit_edible_season": "All Year", "icon": "lemongrass.svg" },
+  { "fruit_type": "Thyme", "fruit_type_he": "טימין (קורנית)", "fruit_type_ru": "Тимьян (Чабрец)", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Mint", "fruit_type_he": "נענע", "fruit_type_ru": "Мята", "fruit_edible_season": "All Year", "icon": "mint.svg" },
+  { "fruit_type": "Sage", "fruit_type_he": "מרווה", "fruit_type_ru": "Шалфей", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Za'atar (Hyssop)", "fruit_type_he": "זעתר (אזוב מצוי)", "fruit_type_ru": "Заатар (Душица)", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Lavender", "fruit_type_he": "לבנדר (אזוביון)", "fruit_type_ru": "Лаванда", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Parsley", "fruit_type_he": "פטרוזיליה", "fruit_type_ru": "Петрушка", "fruit_edible_season": "All Year" },
+  { "fruit_type": "Cilantro (Coriander)", "fruit_type_he": "כוסברה", "fruit_type_ru": "Кинза (Кориандр)", "fruit_edible_season": "Winter–Spring" },
+  { "fruit_type": "Basil", "fruit_type_he": "בזיליקום", "fruit_type_ru": "Базилик", "fruit_edible_season": "Summer", "icon": "basil.svg" }
 ]
