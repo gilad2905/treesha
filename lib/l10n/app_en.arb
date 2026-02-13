@@ -50,6 +50,11 @@
     "description": "Tree name input label"
   },
 
+  "treeNameOptional": "Tree Name (optional)",
+  "@treeNameOptional": {
+    "description": "Tree name input label (optional)"
+  },
+
   "fruitType": "Fruit Type",
   "@fruitType": {
     "description": "Fruit type input label"

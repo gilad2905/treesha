@@ -63,6 +63,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get treeName => 'Название дерева';
 
   @override
+  String get treeNameOptional => 'Название дерева (опционально)';
+
+  @override
   String get fruitType => 'Тип фрукта';
 
   @override

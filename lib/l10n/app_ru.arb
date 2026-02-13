@@ -18,6 +18,7 @@
   "signOut": "Выйти",
   "addTree": "Добавить дерево",
   "treeName": "Название дерева",
+  "treeNameOptional": "Название дерева (опционально)",
   "fruitType": "Тип фрукта",
   "searchFruitType": "Поиск типа фрукта",
   "addImage": "Добавить фото",

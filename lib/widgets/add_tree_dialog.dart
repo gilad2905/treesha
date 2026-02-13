@@ -112,21 +112,6 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: l10n.treeName,
-                      prefixIcon: const Icon(Icons.drive_file_rename_outline),
-                      border: const OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.pleaseEnterTreeName;
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
                   SearchAnchor(
                     searchController: _searchController,
                     builder: (context, controller) {
@@ -175,6 +160,15 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                         );
                       });
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: l10n.treeNameOptional,
+                      prefixIcon: const Icon(Icons.drive_file_rename_outline),
+                      border: const OutlineInputBorder(),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(

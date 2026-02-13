@@ -404,7 +404,16 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       },
       child: Scaffold(
       appBar: AppBar(
-        title: Text(widget.tree.name),
+        title: Text(
+          widget.tree.name.isNotEmpty
+              ? widget.tree.name
+              : () {
+                  final languageCode = Localizations.localeOf(context).languageCode;
+                  if (languageCode == 'he' && _fruitTypeHe != null) return _fruitTypeHe!;
+                  if (languageCode == 'ru' && _fruitTypeRu != null) return _fruitTypeRu!;
+                  return widget.tree.fruitType;
+                }(),
+        ),
         backgroundColor: Theme.of(context).primaryColor,
         leading: BackButton(
           onPressed: () => Navigator.of(context).pop(_hasChanged),

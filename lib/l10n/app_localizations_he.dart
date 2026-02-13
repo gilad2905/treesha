@@ -63,6 +63,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get treeName => 'שם העץ';
 
   @override
+  String get treeNameOptional => 'שם העץ (אופציונלי)';
+
+  @override
   String get fruitType => 'סוג הפרי';
 
   @override

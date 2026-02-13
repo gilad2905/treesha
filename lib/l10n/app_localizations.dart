@@ -208,6 +208,12 @@ abstract class AppLocalizations {
   /// **'Tree Name'**
   String get treeName;
 
+  /// Tree name input label (optional)
+  ///
+  /// In en, this message translates to:
+  /// **'Tree Name (optional)'**
+  String get treeNameOptional;
+
   /// Fruit type input label
   ///
   /// In en, this message translates to:

@@ -51,7 +51,6 @@ class TreeRepository {
 
     // Validate inputs
     if (userId.isEmpty) throw ArgumentError('userId cannot be empty');
-    if (name.isEmpty) throw ArgumentError('name cannot be empty');
     if (fruitType.isEmpty) throw ArgumentError('fruitType cannot be empty');
 
     // Create document data
