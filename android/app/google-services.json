@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "859938357630-5dqd4t18omrfn4jsvjm17ubq5vre5jcg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.badbird.treez",
+            "certificate_hash": "d82d7387374920cb41a7d363e701bd786707178a"
+          }
+        },
+        {
           "client_id": "859938357630-gljtck19gov495lfi9u8nihd71kjv2st.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

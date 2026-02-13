@@ -55,6 +55,7 @@ class FirebaseAuthService {
       }
       return user;
     } catch (e) {
+      debugPrint('[FirebaseAuthService] Error during Google Sign-In: $e');
       return null;
     }
   }
