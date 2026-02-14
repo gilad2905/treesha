@@ -374,7 +374,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get disclaimerAgreement =>
-      'אפליקציה זו מספקת מידע המופק על ידי משתמשים לגבי עצים, עשבי תיבול וצמחים אחרים שעשויים להיות אכילים. התוכן באפליקציה זו נועד למטרות מידע בלבד.\n\nבשימוש באפליקציה זו, הינך מאשר ומסכים כי:';
+      'אפליקציה זו מספקת מידע המופק על ידי משתמשים לגבי עצים, צמחי תבלין וצמחים אחרים שעשויים להיות אכילים. התוכן באפליקציה זו נועד למטרות מידע בלבד.\n\nבשימוש באפליקציה זו, הינך מאשר ומסכים כי:';
 
   @override
   String get disclaimerPoint1Title => '🌱 זיהוי צמחים הוא באחריותך.';
