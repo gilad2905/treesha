@@ -712,6 +712,36 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to delete this post?'**
   String get deletePostConfirmation;
 
+  /// Label shown in place of a blocked user's post
+  ///
+  /// In en, this message translates to:
+  /// **'Post from a blocked user'**
+  String get blockedUserPost;
+
+  /// Block user button label
+  ///
+  /// In en, this message translates to:
+  /// **'Block User'**
+  String get blockUser;
+
+  /// Unblock user button label
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock User'**
+  String get unblockUser;
+
+  /// Confirmation message for blocking a user
+  ///
+  /// In en, this message translates to:
+  /// **'Block {name}? Their posts will be hidden from you.'**
+  String blockUserConfirmation(String name);
+
+  /// Confirmation message for unblocking a user
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock {name}? Their posts will be visible again.'**
+  String unblockUserConfirmation(String name);
+
   /// Message while posting content
   ///
   /// In en, this message translates to:

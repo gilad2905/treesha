@@ -12,9 +12,11 @@ import 'package:treez/services/firebase_auth_service.dart';
 import 'package:treez/services/firebase_service.dart';
 import 'package:treez/services/tree_repository.dart';
 import 'package:treez/services/tree_repository_no_confirm.dart';
+import 'package:treez/services/user_repository.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:treez/l10n/app_localizations.dart';
-import 'package:share_plus/share_plus.dart';
 
 class TreeDetailScreen extends StatefulWidget {
   final Tree tree;
@@ -38,8 +40,11 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   final TreeRepository _treeRepository = TreeRepository();
   final TreeRepositoryNoConfirm _treeRepositoryNoConfirm =
       TreeRepositoryNoConfirm();
+  final UserRepository _userRepository = UserRepository();
+  
   User? _user;
   List<String> _userRoles = ['user'];
+  List<String> _blockedUsers = [];
 
   // Local state to track votes for immediate UI updates
   late List<String> _upvotes;
@@ -93,6 +98,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
     // Load posts
     _loadPosts();
     _loadFruitIcon();
+    _loadBlockedUsers();
   }
 
   Future<void> _loadFruitIcon() async {
@@ -167,6 +173,64 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
         });
       }
     }
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _blockedUsers = prefs.getStringList('blocked_users') ?? [];
+      });
+    }
+  }
+
+  Future<void> _blockUser(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final blocked = List<String>.from(_blockedUsers);
+    if (!blocked.contains(userId)) blocked.add(userId);
+    await prefs.setStringList('blocked_users', blocked);
+    if (mounted) setState(() { _blockedUsers = blocked; });
+  }
+
+  Future<void> _unblockUser(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final blocked = List<String>.from(_blockedUsers)..remove(userId);
+    await prefs.setStringList('blocked_users', blocked);
+    if (mounted) setState(() { _blockedUsers = blocked; });
+  }
+
+  void _showBlockUserDialog(String userId, String userName) {
+    final l10n = AppLocalizations.of(context)!;
+    final isBlocked = _blockedUsers.contains(userId);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isBlocked ? l10n.unblockUser : l10n.blockUser),
+        content: Text(
+          isBlocked
+              ? l10n.unblockUserConfirmation(userName)
+              : l10n.blockUserConfirmation(userName),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (isBlocked) {
+                _unblockUser(userId);
+              } else {
+                _blockUser(userId);
+              }
+            },
+            style: isBlocked ? null : ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(isBlocked ? l10n.unblockUser : l10n.blockUser),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Open Google Maps with directions to the tree
@@ -777,8 +841,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                     separatorBuilder: (context, index) =>
                         const Divider(height: 32),
                     itemBuilder: (context, index) {
-                      final post = _posts[index];
-                      return _buildPostCard(post);
+                      return _buildPostCard(_posts[index]);
                     },
                   ),
           ),
@@ -871,6 +934,31 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
 
   Widget _buildPostCard(TreePost post) {
     final l10n = AppLocalizations.of(context)!;
+    if (_blockedUsers.contains(post.userId)) {
+      return Card(
+        elevation: 1,
+        color: Colors.grey[100],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          child: Row(
+            children: [
+              Icon(Icons.block, size: 16, color: Colors.grey[400]),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.blockedUserPost,
+                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                ),
+              ),
+              TextButton(
+                onPressed: () => _showBlockUserDialog(post.userId, post.userName),
+                child: Text(l10n.unblockUser, style: const TextStyle(fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Card(
       elevation: 2,
       child: Padding(
@@ -937,6 +1025,17 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         ),
                       );
                     },
+                  ),
+                // Block/unblock button — for all users, except on their own posts
+                if (_user == null || _user!.uid != post.userId)
+                  IconButton(
+                    icon: Icon(
+                      _blockedUsers.contains(post.userId) ? Icons.person_add : Icons.block,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
+                    tooltip: _blockedUsers.contains(post.userId) ? l10n.unblockUser : l10n.blockUser,
+                    onPressed: () => _showBlockUserDialog(post.userId, post.userName),
                   ),
               ],
             ),

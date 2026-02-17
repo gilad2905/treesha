@@ -359,6 +359,25 @@ class AppLocalizationsHe extends AppLocalizations {
       'האם אתה בטוח שברצונך למחוק את הפוסט הזה?';
 
   @override
+  String get blockedUserPost => 'פוסט ממשתמש חסום';
+
+  @override
+  String get blockUser => 'חסום משתמש';
+
+  @override
+  String get unblockUser => 'בטל חסימת משתמש';
+
+  @override
+  String blockUserConfirmation(String name) {
+    return 'לחסום את $name? הפוסטים שלהם יוסתרו.';
+  }
+
+  @override
+  String unblockUserConfirmation(String name) {
+    return 'לבטל את חסימת $name? הפוסטים שלהם יוצגו שוב.';
+  }
+
+  @override
   String get posting => 'מעלה...';
 
   @override

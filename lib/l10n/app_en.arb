@@ -500,6 +500,36 @@
   "@deletePostConfirmation": {
     "description": "Confirmation message for post deletion"
   },
+  "blockedUserPost": "Post from a blocked user",
+  "@blockedUserPost": {
+    "description": "Label shown in place of a blocked user's post"
+  },
+  "blockUser": "Block User",
+  "@blockUser": {
+    "description": "Block user button label"
+  },
+  "unblockUser": "Unblock User",
+  "@unblockUser": {
+    "description": "Unblock user button label"
+  },
+  "blockUserConfirmation": "Block {name}? Their posts will be hidden from you.",
+  "@blockUserConfirmation": {
+    "description": "Confirmation message for blocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unblockUserConfirmation": "Unblock {name}? Their posts will be visible again.",
+  "@unblockUserConfirmation": {
+    "description": "Confirmation message for unblocking a user",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "posting": "Posting...",
   "@posting": {
     "description": "Message while posting content"

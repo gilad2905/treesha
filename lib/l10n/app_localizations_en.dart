@@ -363,6 +363,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to delete this post?';
 
   @override
+  String get blockedUserPost => 'Post from a blocked user';
+
+  @override
+  String get blockUser => 'Block User';
+
+  @override
+  String get unblockUser => 'Unblock User';
+
+  @override
+  String blockUserConfirmation(String name) {
+    return 'Block $name? Their posts will be hidden from you.';
+  }
+
+  @override
+  String unblockUserConfirmation(String name) {
+    return 'Unblock $name? Their posts will be visible again.';
+  }
+
+  @override
   String get posting => 'Posting...';
 
   @override

@@ -363,6 +363,25 @@ class AppLocalizationsRu extends AppLocalizations {
       'Вы уверены, что хотите удалить эту запись?';
 
   @override
+  String get blockedUserPost => 'Публикация заблокированного пользователя';
+
+  @override
+  String get blockUser => 'Заблокировать';
+
+  @override
+  String get unblockUser => 'Разблокировать';
+
+  @override
+  String blockUserConfirmation(String name) {
+    return 'Заблокировать $name? Их посты будут скрыты.';
+  }
+
+  @override
+  String unblockUserConfirmation(String name) {
+    return 'Разблокировать $name? Их посты снова станут видны.';
+  }
+
+  @override
   String get posting => 'Публикация...';
 
   @override
