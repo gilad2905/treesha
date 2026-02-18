@@ -3,12 +3,14 @@ class Fruit {
   final String typeHe;
   final String typeRu;
   final String edibleSeason;
+  final String? icon;
 
   Fruit({
     required this.type,
     required this.typeHe,
     required this.typeRu,
     required this.edibleSeason,
+    this.icon,
   });
 
   factory Fruit.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Fruit {
       typeHe: json['fruit_type_he'] as String? ?? json['fruit_type'] as String,
       typeRu: json['fruit_type_ru'] as String? ?? json['fruit_type'] as String,
       edibleSeason: json['fruit_edible_season'] as String,
+      icon: json['icon'] as String?,
     );
   }
 

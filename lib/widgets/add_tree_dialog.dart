@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:treez/l10n/app_localizations.dart';
 import 'package:treez/models/fruit_model.dart'; // Import fruit_model
@@ -148,6 +149,13 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                       return filtered.map((fruit) {
                         final displayName = _getFruitDisplayName(fruit);
                         return ListTile(
+                          leading: fruit.icon != null
+                              ? SvgPicture.asset(
+                                  'assets/fruit_icons/${fruit.icon}',
+                                  width: 32,
+                                  height: 32,
+                                )
+                              : const SizedBox(width: 32),
                           title: Text(displayName),
                           subtitle: Text(fruit.edibleSeason),
                           onTap: () {
