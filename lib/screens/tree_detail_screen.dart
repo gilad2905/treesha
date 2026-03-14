@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,7 +15,6 @@ import 'package:treez/services/firebase_auth_service.dart';
 import 'package:treez/services/firebase_service.dart';
 import 'package:treez/services/tree_repository.dart';
 import 'package:treez/services/tree_repository_no_confirm.dart';
-import 'package:treez/services/user_repository.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -40,7 +42,6 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   final TreeRepository _treeRepository = TreeRepository();
   final TreeRepositoryNoConfirm _treeRepositoryNoConfirm =
       TreeRepositoryNoConfirm();
-  final UserRepository _userRepository = UserRepository();
   
   User? _user;
   List<String> _userRoles = ['user'];
@@ -60,6 +61,9 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
   String? _fruitIconAsset;
   String? _fruitTypeHe;
   String? _fruitTypeRu;
+  
+  // Real-time listener
+  StreamSubscription? _treeListener;
 
   @override
   void initState() {
@@ -95,10 +99,59 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
       }
     });
 
+    // Setup real-time listener for tree changes
+    _setupTreeListener();
+
     // Load posts
     _loadPosts();
     _loadFruitIcon();
     _loadBlockedUsers();
+  }
+
+  /// Setup real-time listener for tree document changes
+  /// This ensures votes and other tree data are always in sync with the database
+  void _setupTreeListener() {
+    _treeListener = FirebaseFirestore.instanceFor(
+      app: Firebase.app(),
+      databaseId: 'treesha',
+    )
+        .collection('trees')
+        .doc(widget.tree.id)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            if (!mounted || !snapshot.exists) return;
+
+            final data = snapshot.data()!;
+            final List<String> upvotes =
+                List<String>.from(data['upvotes'] ?? []);
+            final List<String> downvotes =
+                List<String>.from(data['downvotes'] ?? []);
+            final List<String> reported =
+                List<String>.from(data['reported'] ?? []);
+            final String status = data['status'] ?? 'pending';
+
+            setState(() {
+              _upvotes = upvotes;
+              _downvotes = downvotes;
+              _reported = reported;
+              _status = status;
+            });
+
+            debugPrint(
+              '[TreeDetailScreen] Tree updated from database: upvotes=${upvotes.length}, downvotes=${downvotes.length}, status=$status',
+            );
+          },
+          onError: (error) {
+            debugPrint('[TreeDetailScreen] Error listening to tree changes: $error');
+          },
+        );
+  }
+
+  @override
+  void dispose() {
+    _treeListener?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadFruitIcon() async {
@@ -642,11 +695,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         });
 
                         try {
+                          debugPrint('[TreeDetailScreen] Sending upvote to database for tree: ${widget.tree.id}, user: ${_user!.uid}');
                           await _treeRepository.upvoteTree(
                             widget.tree.id,
                             _user!.uid,
                             isAdmin: _userRoles.contains('admin'),
                           );
+                          debugPrint('[TreeDetailScreen] ✅ Upvote successful! Updated upvotes: ${_upvotes.length}');
                         } catch (e) {
                           // Revert if failed
                           setState(() {
@@ -664,6 +719,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                             errorMessage = e.toString();
                           }
 
+                          debugPrint('[TreeDetailScreen] ❌ Upvote failed: $errorMessage');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${l10n.somethingWentWrong}: $errorMessage'),
@@ -724,11 +780,13 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                         });
 
                         try {
+                          debugPrint('[TreeDetailScreen] Sending downvote to database for tree: ${widget.tree.id}, user: ${_user!.uid}');
                           await _treeRepository.downvoteTree(
                             widget.tree.id,
                             _user!.uid,
                             isAdmin: _userRoles.contains('admin'),
                           );
+                          debugPrint('[TreeDetailScreen] ✅ Downvote successful! Updated downvotes: ${_downvotes.length}');
                         } catch (e) {
                           // Revert
                           setState(() {
@@ -746,6 +804,7 @@ class _TreeDetailScreenState extends State<TreeDetailScreen> {
                             errorMessage = e.toString();
                           }
 
+                          debugPrint('[TreeDetailScreen] ❌ Downvote failed: $errorMessage');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${l10n.somethingWentWrong}: $errorMessage'),
