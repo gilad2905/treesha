@@ -660,22 +660,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
             ],
           ),
-          // Map type selector
-          PopupMenuButton<MapType>(
-            icon: const Icon(Icons.map, color: Colors.white),
-            tooltip: 'Map type',
-            onSelected: (MapType mt) {
-              setState(() {
-                _mapType = mt;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: MapType.normal, child: Text('Normal')),
-              const PopupMenuItem(value: MapType.hybrid, child: Text('Hybrid')),
-              const PopupMenuItem(value: MapType.satellite, child: Text('Satellite')),
-              const PopupMenuItem(value: MapType.terrain, child: Text('Terrain')),
-            ],
-          ),
+          // Map type selector removed from AppBar (we use the in-map button instead)
           const SizedBox(width: 8),
           // User Section
           if (_user == null)
@@ -745,37 +730,68 @@ class _MyHomePageState extends State<MyHomePage> {
 
       body: _isLoadingTrees
           ? const Center(child: CircularProgressIndicator())
-          : GoogleMap(
-              onMapCreated: _onMapCreated,
+          : Stack(
+              children: [
+                GoogleMap(
+                  onMapCreated: _onMapCreated,
 
-              initialCameraPosition: CameraPosition(
-                // ignore: unnecessary_null_comparison
-                target: currentPosition != null
-                    ? LatLng(
-                        currentPosition.latitude,
-                        currentPosition.longitude,
-                      )
-                    : const LatLng(0, 0),
+                  initialCameraPosition: CameraPosition(
+                    // ignore: unnecessary_null_comparison
+                    target: currentPosition != null
+                        ? LatLng(
+                            currentPosition.latitude,
+                            currentPosition.longitude,
+                          )
+                        : const LatLng(0, 0),
 
-                zoom: 14.0,
-              ),
+                    zoom: 14.0,
+                  ),
 
-              markers: _markers,
+                  markers: _markers,
 
-              mapType: _mapType,
+                  mapType: _mapType,
 
-              myLocationEnabled: true,
+                  myLocationEnabled: true,
 
-              myLocationButtonEnabled: true,
+                  myLocationButtonEnabled: true,
 
-              // Disable all gestures when saving tree
-              scrollGesturesEnabled: !_isSavingTree,
-              zoomGesturesEnabled: !_isSavingTree,
-              rotateGesturesEnabled: !_isSavingTree,
-              tiltGesturesEnabled: !_isSavingTree,
+                  // Disable all gestures when saving tree
+                  scrollGesturesEnabled: !_isSavingTree,
+                  zoomGesturesEnabled: !_isSavingTree,
+                  rotateGesturesEnabled: !_isSavingTree,
+                  tiltGesturesEnabled: !_isSavingTree,
 
-              // Use native onLongPress for accurate coordinates
-              onLongPress: _onMapTapped,
+                  // Use native onLongPress for accurate coordinates
+                  onLongPress: _onMapTapped,
+                ),
+
+                // Map type floating button (top-left)
+                Align(
+                  alignment: const Alignment(-0.9, -0.95),
+                  child: SafeArea(
+                    child: Material(
+                      elevation: 4,
+                      shape: const CircleBorder(),
+                      color: Colors.white,
+                      child: InkWell(
+                              customBorder: const CircleBorder(),
+                              onTap: _showMapTypeSelector,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Opacity(
+                                  opacity: 0.85,
+                                  child: Icon(
+                                    Icons.map,
+                                    color: Theme.of(context).primaryColor,
+                                    size: 22,
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
       floatingActionButton: FloatingActionButton(
@@ -1089,5 +1105,62 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }
+  }
+
+  void _showMapTypeSelector() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  // child: Text('Map type', style: Theme.of(context).textTheme.titleLarge),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _mapTypeTile(MapType.normal, 'Default', Icons.map),
+                    _mapTypeTile(MapType.satellite, 'Satellite', Icons.satellite),
+                    _mapTypeTile(MapType.terrain, 'Terrain', Icons.terrain),
+                    _mapTypeTile(MapType.hybrid, 'Hybrid', Icons.layers),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _mapTypeTile(MapType type, String label, IconData icon) {
+    final selected = _mapType == type;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _mapType = type;
+        });
+        Navigator.of(context).pop();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: selected ? Theme.of(context).primaryColor : Colors.grey[200],
+            child: Icon(icon, color: selected ? Colors.white : Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(label),
+        ],
+      ),
+    );
   }
 }
