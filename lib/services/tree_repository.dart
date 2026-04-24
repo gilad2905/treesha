@@ -49,9 +49,10 @@ class TreeRepository {
       );
     }
 
-    // Validate inputs
-    if (userId.isEmpty) throw ArgumentError('userId cannot be empty');
-    if (fruitType.isEmpty) throw ArgumentError('fruitType cannot be empty');
+  // Validate inputs
+  if (userId.isEmpty) throw ArgumentError('userId cannot be empty');
+  // name is optional - allow empty string
+  if (fruitType.isEmpty) throw ArgumentError('fruitType cannot be empty');
 
     // Create document data
     final now = DateTime.now();

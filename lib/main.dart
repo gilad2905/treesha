@@ -152,6 +152,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   GoogleMapController? _mapController;
 
+  CameraPosition? _lastCameraPosition;
+
   Set<Marker> _markers = {}; // Changed type from AdvancedMarkerElement
   Set<Circle> _circles = {}; // Circles for user location
 
@@ -166,6 +168,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<String, BitmapDescriptor> _fruitIcons = {}; // Store loaded SVG icons
   BitmapDescriptor? _defaultTreeIcon; // Default SVG icon
   List<Fruit> _allFruits = []; // Store official fruit list
+  // Map state
+  MapType _mapType = MapType.hybrid;
+  bool _followUser = true; // When true, map recenters on user position
 
 
   @override
@@ -517,8 +522,8 @@ class _MyHomePageState extends State<MyHomePage> {
         _updateMarkers(); // Update markers to include user location
       });
 
-      // If map controller is already available, animate camera to current position
-      if (_mapController != null) {
+      // If map controller is already available and we're following the user, animate camera to current position
+      if (_mapController != null && _followUser) {
         _mapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
@@ -539,9 +544,17 @@ class _MyHomePageState extends State<MyHomePage> {
     // If _currentPosition was already determined before map created, animate camera again.
     // This handles cases where _determinePosition finishes before _onMapCreated.
 
+    // If we had a last camera position (user focused on new tree), restore it first
+    if (_lastCameraPosition != null) {
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(_lastCameraPosition!),
+      );
+      return;
+    }
+
     final currentPosition = _currentPosition; // Local non-nullable variable
     // ignore: unnecessary_null_comparison
-    if (currentPosition != null) {
+    if (currentPosition != null && _followUser) {
       _mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
@@ -647,6 +660,22 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
             ],
           ),
+          // Map type selector
+          PopupMenuButton<MapType>(
+            icon: const Icon(Icons.map, color: Colors.white),
+            tooltip: 'Map type',
+            onSelected: (MapType mt) {
+              setState(() {
+                _mapType = mt;
+              });
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: MapType.normal, child: Text('Normal')),
+              const PopupMenuItem(value: MapType.hybrid, child: Text('Hybrid')),
+              const PopupMenuItem(value: MapType.satellite, child: Text('Satellite')),
+              const PopupMenuItem(value: MapType.terrain, child: Text('Terrain')),
+            ],
+          ),
           const SizedBox(width: 8),
           // User Section
           if (_user == null)
@@ -733,7 +762,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
               markers: _markers,
 
-              mapType: MapType.satellite,
+              mapType: _mapType,
 
               myLocationEnabled: true,
 
@@ -945,8 +974,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 }
               }
 
-              // Reload trees to show the new tree on map
+              // Stop following user and prepare to focus on the newly added tree
+              if (mounted) {
+                setState(() {
+                  _followUser = false;
+                });
+              }
+              final newPos = CameraPosition(
+                target: LatLng(position.latitude, position.longitude),
+                zoom: 18.0,
+              );
+              _lastCameraPosition = newPos;
+
+              // Reload trees to show the new tree on map (do this after we set the desired camera)
               _loadTrees();
+
+              try {
+                await _mapController?.animateCamera(
+                  CameraUpdate.newCameraPosition(newPos),
+                );
+              } catch (e) {
+                debugPrint('[Main] Failed to animate camera to new tree: $e');
+              }
 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

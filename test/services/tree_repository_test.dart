@@ -82,8 +82,8 @@ void main() {
       );
     });
 
-    test('addTree throws ArgumentError if name is empty', () async {
-      // Similar test for empty name
+    test('addTree allows empty name (name is optional)', () async {
+      // Name is optional now; ensure addTree succeeds with empty name
       FirestoreConfig.setConfigured(true);
       final position = Position(
         latitude: 32.0,
@@ -98,16 +98,15 @@ void main() {
         speedAccuracy: 0,
       );
 
-      expect(
-        () => repository.addTree(
-          userId: 'user123',
-          name: '',
-          fruitType: 'Apple',
-          position: position,
-          userRole: 'user',
-        ),
-        throwsA(isA<ArgumentError>()),
+      final id = await repository.addTree(
+        userId: 'user123',
+        name: '',
+        fruitType: 'Apple',
+        position: position,
+        userRole: 'user',
       );
+
+      expect(id, isA<String>());
     });
 
     test('addTree throws ArgumentError if fruitType is empty', () async {

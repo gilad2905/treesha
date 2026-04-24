@@ -116,13 +116,25 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                   SearchAnchor(
                     searchController: _searchController,
                     builder: (context, controller) {
+                      // Use the SearchAnchor-provided controller for the field so the overlay
+                      // and the TextField stay in sync. Keep our _fruitTypeController in sync
+                      // for submission elsewhere in the widget.
+                      controller.text = controller.text.isEmpty ? _fruitTypeController.text : controller.text;
                       return TextFormField(
-                        controller: _fruitTypeController,
+                        controller: controller,
                         onTap: () {
                           controller.openView();
                         },
                         onChanged: (value) {
+                          // When the user types a custom value, clear the selected fruit
+                          // so we use the typed text when saving. Also sync to our controller.
                           controller.openView();
+                          if (_selectedFruitType != null) {
+                            setState(() {
+                              _selectedFruitType = null;
+                            });
+                          }
+                          _fruitTypeController.text = value;
                         },
                         decoration: InputDecoration(
                           labelText: l10n.fruitType,
@@ -142,11 +154,31 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                       final String pattern = controller.text.toLowerCase();
                       final filtered = _allFruits.where((fruit) {
                         return fruit.type.toLowerCase().contains(pattern) ||
-                               fruit.typeHe.toLowerCase().contains(pattern) ||
-                               fruit.typeRu.toLowerCase().contains(pattern);
+                            fruit.typeHe.toLowerCase().contains(pattern) ||
+                            fruit.typeRu.toLowerCase().contains(pattern);
                       }).toList();
 
-                      return filtered.map((fruit) {
+                      final List<Widget> tiles = [];
+
+                      final typed = controller.text.trim();
+                      if (typed.isNotEmpty) {
+                        // Provide an explicit option to use the typed value
+                        tiles.add(ListTile(
+                          leading: const Icon(Icons.keyboard_return),
+                          title: Text('Use "${typed}"'),
+                          subtitle: const Text('Use the text you typed'),
+                          onTap: () {
+                            setState(() {
+                              controller.text = typed;
+                              _fruitTypeController.text = typed;
+                              _selectedFruitType = null; // typed custom value
+                            });
+                            controller.closeView(typed);
+                          },
+                        ));
+                      }
+
+                      tiles.addAll(filtered.map((fruit) {
                         final displayName = _getFruitDisplayName(fruit);
                         return ListTile(
                           leading: fruit.icon != null
@@ -160,13 +192,16 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
                           subtitle: Text(fruit.edibleSeason),
                           onTap: () {
                             setState(() {
+                              controller.text = displayName;
                               _fruitTypeController.text = displayName;
                               _selectedFruitType = fruit.type;
                             });
                             controller.closeView(displayName);
                           },
                         );
-                      });
+                      }));
+
+                      return tiles;
                     },
                   ),
                   const SizedBox(height: 16),
@@ -259,21 +294,33 @@ class _AddTreeDialogState extends State<AddTreeDialog> {
         ),
         actions: [
           TextButton(
-            onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+            onPressed: _isLoading
+                ? null
+                : () {
+                    // Close the search overlay and unfocus before popping
+                    _searchController.closeView(_fruitTypeController.text);
+                    FocusScope.of(context).unfocus();
+                    Navigator.of(context).pop();
+                  },
             child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: _isLoading
                 ? null
                 : () async {
+                    // Close search overlay and unfocus to ensure the typed value is applied
+                    _searchController.closeView(_fruitTypeController.text);
+                    FocusScope.of(context).unfocus();
+
                     if (_formKey.currentState!.validate()) {
                       setState(() => _isLoading = true);
                       try {
                         String finalFruitType = _selectedFruitType ?? _fruitTypeController.text;
                         
                         if (_selectedFruitType == null) {
+                          // Allow digits 0-9 (typo previously used 0-6). Keep Hebrew and Cyrillic ranges.
                           finalFruitType = finalFruitType
-                              .replaceAll(RegExp(r'[^a-zA-Z0-6\s\u0590-\u05FF\u0400-\u04FF]'), '')
+                              .replaceAll(RegExp(r'[^a-zA-Z0-9\s\u0590-\u05FF\u0400-\u04FF]'), '')
                               .split(' ')
                               .where((word) => word.isNotEmpty)
                               .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
